@@ -1,3 +1,23 @@
-# Added by cargo
+# 📂 Fichiers contenant des informations sensibles
+.env
+.env.local
+.env.development
+.env.production
+/config/diesel.toml  # Peut contenir des infos de connexion à la DB
+/config/database.yml  # Si utilisé
+/secrets/  # Si tu stockes des clés privées
 
-/target
+# 📂 Fichiers générés par Diesel
+# migrations/  # À ignorer uniquement si tu ne veux pas versionner les migrations (à éviter dans projet collectif)
+# Fichier temporaire de Diesel
+diesel.toml.bak  
+
+# 📂 Fichiers générés par Rust
+/target/
+# /Cargo.lock  # Si ton projet est une lib (sinon à inclure pour un projet app)
+
+# 📂 Fichiers générés par Next.js
+.next/
+/out/
+# Logs divers (ex: npm-debug.log)
+*.log  
