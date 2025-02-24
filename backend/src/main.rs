@@ -14,34 +14,35 @@ use utils::schema::users::dsl::*;
 //Garde des connexions à la base de données ouvertes, individuelles et accessibles.
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
-#[actix_rt::test]
-async fn test_register() {
-    use actix_web::{http::StatusCode, test};
-    use serde_json::json;
-    let database_url = "postgres://myuser:mvtmjsun@localhost/nnef"; // Ton URL DB
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool");
+// test en local
+// #[actix_rt::test]
+// async fn test_register() {
+//     use actix_web::{http::StatusCode, test};
+//     use serde_json::json;
+//     let database_url = "postgres://myuser:mvtmjsun@localhost/nnef"; // Ton URL DB
+//     let manager = ConnectionManager::<PgConnection>::new(database_url);
+//     let pool = r2d2::Pool::builder()
+//         .build(manager)
+//         .expect("Failed to create pool");
 
-    let app = test::init_service(
-        App::new().app_data(web::Data::new(pool)).service(register), // Route à tester
-    )
-    .await;
+//     let app = test::init_service(
+//         App::new().app_data(web::Data::new(pool)).service(register), // Route à tester
+//     )
+//     .await;
 
-    let user_data = json!({
-        "email": "other_test@testing.test",
-        "password": "abcde_bad_password",
-    });
+//     let user_data = json!({
+//         "email": "other_test@testing.test",
+//         "password": "abcde_bad_password",
+//     });
 
-    let req = test::TestRequest::post()
-        .uri("/register")
-        .set_json(&user_data)
-        .to_request();
+//     let req = test::TestRequest::post()
+//         .uri("/register")
+//         .set_json(&user_data)
+//         .to_request();
 
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), StatusCode::OK);
-}
+//     let resp = test::call_service(&app, req).await;
+//     assert_eq!(resp.status(), StatusCode::OK);
+// }
 
 #[get("/")]
 async fn hello() -> impl Responder {

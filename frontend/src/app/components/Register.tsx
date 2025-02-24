@@ -1,8 +1,10 @@
 "use client"; //useState fonctionne uniquement côté client
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function Form() {
+export default function Register() {
+    const [mounted, setMounted] = useState(false);
+
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [message, setMessage] = useState("");
 
@@ -33,11 +35,19 @@ export default function Form() {
         }
     };
 
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        // Affiche un contenu temporaire pendant le rendu SSR
+        return null; // ou un chargement
+    }
     return (
         <div>
             <h2>Inscription</h2>
-            <form onSubmit={handleSubmit}>
-                <input
+            <form className="" onSubmit={handleSubmit}>
+                <input 
                     type="email"
                     name="email"
                     placeholder="Email"
