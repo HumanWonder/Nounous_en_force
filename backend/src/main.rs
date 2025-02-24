@@ -1,5 +1,6 @@
 mod utils;
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, test, http::StatusCode};
+use actix_cors::Cors;
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use bcrypt::{hash, DEFAULT_COST};
 use diesel::{
     r2d2::{self, ConnectionManager},
@@ -13,18 +14,18 @@ use utils::schema::users::dsl::*;
 //Garde des connexions à la base de données ouvertes, individuelles et accessibles.
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
-
 #[actix_rt::test]
 async fn test_register() {
+    use actix_web::{http::StatusCode, test};
     use serde_json::json;
-    let database_url = "postgres://myuser:mvtmjsun@localhost/nnef";  // Ton URL DB
+    let database_url = "postgres://myuser:mvtmjsun@localhost/nnef"; // Ton URL DB
     let manager = ConnectionManager::<PgConnection>::new(database_url);
-    let pool = r2d2::Pool::builder().build(manager).expect("Failed to create pool");
+    let pool = r2d2::Pool::builder()
+        .build(manager)
+        .expect("Failed to create pool");
 
     let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(pool))
-            .service(register), // Route à tester
+        App::new().app_data(web::Data::new(pool)).service(register), // Route à tester
     )
     .await;
 
@@ -42,7 +43,6 @@ async fn test_register() {
     assert_eq!(resp.status(), StatusCode::OK);
 }
 
-
 #[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello zere! Velcome")
@@ -55,18 +55,15 @@ async fn register(
 ) -> impl Responder {
     let conn = &mut pool.get().expect("Error while connecting to DB");
     let other_hashed_password = hash(&data.password, DEFAULT_COST)
-    .expect("Failed to hash password")
-    .to_string();
+        .expect("Failed to hash password")
+        .to_string();
 
     let new_user = auth::NewUser {
         email: data.email.clone(),
         hashed_password: other_hashed_password,
     };
     // Insérer en DB
-    match diesel::insert_into(users)
-        .values(&new_user)
-        .execute(conn)
-    {
+    match diesel::insert_into(users).values(&new_user).execute(conn) {
         Ok(_) => HttpResponse::Ok().body("User registered successfully"),
         Err(err) => {
             eprintln!("Error inserting user: {:?}", err);
@@ -94,7 +91,14 @@ async fn main() -> std::io::Result<()> {
 
     //Lance le serveur
     HttpServer::new(move || {
+        // Configuration CORS
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000") // Autoriser les requêtes de ton front-end
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+            .allowed_headers(vec!["Content-Type", "Authorization"])
+            .max_age(3600); // Durée de la mise en cache du pré-vol CORS
         App::new()
+            .wrap(cors) // Ajoute la configuration CORS
             .app_data(web::Data::new(pool.clone())) // Ajoute le pool au serveur
             .service(hello)
             .service(register)
