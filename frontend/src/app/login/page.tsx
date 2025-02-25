@@ -1,22 +1,24 @@
-"use client"; //useState fonctionne uniquement côté client
-
+"use client"; 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default function Register() {
+export default function Login() {
+
+    const router = useRouter();
     const [mounted, setMounted] = useState(false);
 
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [message, setMessage] = useState("");
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         try {
-            const response = await fetch("http://127.0.0.1:8080/register", {
+            const response = await fetch("http://127.0.0.1:8080/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -25,17 +27,17 @@ export default function Register() {
             });
 
             if (response.ok) {
-                setMessage("Inscription envoyée pour validation !");
+                setMessage("Connexion réussie !");
             } else {
-                setMessage("Erreur lors de l'inscription.");
+                setMessage("Erreur de connexion.");
             }
         } catch (error) {
             console.error("Erreur:", error);
             setMessage("Erreur réseau");
         }
     };
-
     useEffect(() => {
+        console.log(window.location.href);
         setMounted(true);
     }, []);
 
@@ -43,11 +45,12 @@ export default function Register() {
         // Affiche un contenu temporaire pendant le rendu SSR
         return null; // ou un chargement
     }
+
     return (
         <div>
-            <h2>Inscription</h2>
-            <form className="" onSubmit={handleSubmit}>
-                <input 
+            <h2>Connexion</h2>
+            <form onSubmit={handleSubmit}>
+                <input
                     type="email"
                     name="email"
                     placeholder="Email"
@@ -63,9 +66,13 @@ export default function Register() {
                     onChange={handleChange}
                     required
                 />
-                <button type="submit">S'inscrire</button>
+                <button type="submit">Se connecter</button>
             </form>
             {message && <p>{message}</p>}
+            <br/>
+            <button onClick={() => router.push("/")}>
+                Retour
+            </button>
         </div>
     );
 }

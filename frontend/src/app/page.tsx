@@ -1,12 +1,19 @@
-import Register from './components/Register';
+"use client";
 
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  
-  return (
-    <div>
-      <h1>Home</h1>
-        <Register />
-      </div>
-  );
+    const router = useRouter();
+
+    return (
+        <div>
+            <h1>Bienvenue</h1>
+            <button onClick={() => router.push("/register/owner")}>
+                Inscription Responsable de créche
+            </button>
+            <button onClick={() => router.push("/register/temp")}>
+                Inscription Intervenant.e
+            </button>
+        </div>
+    );
 }
