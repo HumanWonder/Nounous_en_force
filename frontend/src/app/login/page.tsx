@@ -1,6 +1,7 @@
 "use client"; 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Button from "../components/button";
 
 export default function Login() {
 
@@ -66,13 +67,13 @@ export default function Login() {
                     onChange={handleChange}
                     required
                 />
-                <button type="submit">Se connecter</button>
+                <Button type="submit">Se connecter</Button>
             </form>
             {message && <p>{message}</p>}
             <br/>
-            <button onClick={() => router.push("/")}>
+            <Button onClick={() => router.push("/")}>
                 Retour
-            </button>
+            </Button>
         </div>
     );
 }

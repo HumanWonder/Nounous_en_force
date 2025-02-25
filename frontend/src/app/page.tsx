@@ -1,19 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Button from "./components/button";
 
 export default function Home() {
     const router = useRouter();
 
     return (
-        <div>
+        <div className="h-screen">
             <h1>Bienvenue</h1>
-            <button onClick={() => router.push("/register/owner")}>
+            <Button onClick={() => router.push("/register/owner")}>
                 Inscription Responsable de créche
-            </button>
-            <button onClick={() => router.push("/register/temp")}>
+            </Button>
+            <Button onClick={() => router.push("/register/temp")}>
                 Inscription Intervenant.e
-            </button>
+            </Button>
         </div>
     );
 }

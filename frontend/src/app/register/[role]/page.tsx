@@ -1,6 +1,7 @@
 "use client"; 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Button from "../../components/button";
 
 export default function Register({ params }: { params: Promise<{ role: string }> }) {
     const router = useRouter();
@@ -56,13 +57,13 @@ export default function Register({ params }: { params: Promise<{ role: string }>
                     onChange={handleChange}
                     required
                 />
-                <button type="submit">S'inscrire</button>
+                <Button type="submit">S'inscrire</Button>
             </form>
             {message && <p>{message}</p>}
 
-            <button onClick={() => router.push("/login")}>
+            <Button onClick={() => router.push("/login")}>
                 Déjà inscrit ? Connectez-vous
-            </button>
+            </Button>
         </div>
     );
 }
