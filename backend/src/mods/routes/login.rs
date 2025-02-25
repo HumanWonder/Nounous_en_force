@@ -1,6 +1,6 @@
 // Routes pour connexion et JWT
 use actix_web::{post, web, HttpResponse, Responder};
-use diesel::prelude::*;
+use diesel::*;
 use crate::db::DbPool;
 use crate::mods::models::user::User;
 use crate::mods::utils::schema::users::dsl::*;
@@ -15,14 +15,15 @@ async fn login(
 
     let user = users
         .filter(email.eq(&credentials.email))
-        .first::<User>(conn)
+        .select((id, hashed_password, email))
+        .first::<(i32, String, String)>(conn)
         .optional()
         .expect("Erreur requête utilisateur");
 
     match user {
         Some(user) => {
-            if verify_password(&credentials.hashed_password, &user.hashed_password) {
-                let token = generate_jwt(&user.email);
+            if verify_password(&credentials.hashed_password, &user.1) {
+                let token = generate_jwt(&user.2);
                 HttpResponse::Ok().json(token)
             } else {
                 HttpResponse::Unauthorized().body("Mot de passe incorrect")

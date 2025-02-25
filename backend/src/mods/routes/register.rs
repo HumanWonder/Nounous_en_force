@@ -1,6 +1,6 @@
 //Routes pour inscriptions (owners et temps)
 use actix_web::{post, web, HttpResponse, Responder};
-// use diesel::RunQueryDsl;
+use diesel::*;
 use crate::db::DbPool;
 use crate::mods::models::forms::{RegisterOwner, RegisterTemp};
 use crate::mods::models::user::NewUser;
@@ -22,7 +22,7 @@ async fn register_owner(
         is_validated: Some(false),
     };
 
-    match diesel::insert_into(users).values(&new_user).execute(conn) {
+    match insert_into(users).values(&new_user).execute(conn) {
         Ok(_) => HttpResponse::Ok().body("Owner registered successfully"),
         Err(err) => {
             eprintln!("Erreur insertion Owner : {:?}", err);

@@ -1,15 +1,17 @@
 //modèle utilisateur
 
-use serde::{Serialize, Deserialize};
-use diesel::prelude::*;
 use crate::mods::utils::schema::users;
+use diesel::prelude::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Selectable, Serialize, Deserialize)]
 pub struct User {
     pub id: i32,
     pub email: String,
     pub hashed_password: String,
+    pub is_validated: Option<bool>,
     pub role: String,
+    pub created_at: Option<chrono::NaiveDateTime>,
 }
 
 #[derive(Insertable)]
