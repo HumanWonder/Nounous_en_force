@@ -21,6 +21,7 @@ export default function RootLayout({
                 <header>
                     <nav>
                         <Button onClick={() => router.push("/")}>Home</Button>
+                        <Button onClick={()=> router.push("/login")}>Connexion</Button>
                     </nav>
                 </header>
                 <main className="h-screen flex items-center justify-center gap-4 bg-gray-100">
