@@ -2,12 +2,16 @@
 use bcrypt::{hash, verify, DEFAULT_COST};
 use jsonwebtoken::{encode, Header, EncodingKey};
 use serde::Serialize;
+use uuid::Uuid;
+use chrono::{Duration, Utc};
 
+//faire env key
 const SECRET_KEY: &[u8] = b"supersecretkey";
 
 #[derive(Serialize)]
 struct Claims {
     sub: String,
+    token_id: String,    // Identifiant unique pour chaque token
     exp: usize,
 }
 
@@ -20,10 +24,15 @@ pub fn verify_password(password: &str, hashed: &str) -> bool {
 }
 
 pub fn generate_jwt(email: &str) -> String {
+    // Calculer l'expiration du token (par exemple dans 1 heure)
+    let expiration = (Utc::now() + Duration::hours(1)).timestamp() as usize;
+
     let claims = Claims {
         sub: email.to_string(),
-        exp: 10000000000, // Expiration du token (timestamp)
+        token_id: Uuid::new_v4().to_string(),
+        exp: expiration, 
     };
+    
     encode(&Header::default(), &claims, &EncodingKey::from_secret(SECRET_KEY))
         .expect("Erreur génération token")
 }

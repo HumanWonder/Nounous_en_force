@@ -10,6 +10,7 @@ pub struct User {
     pub email: String,
     pub hashed_password: String,
     pub is_validated: Option<bool>,
+    pub is_profile_validated: Option<bool>, // Validation par admin
     pub role: String,
     pub created_at: Option<chrono::NaiveDateTime>,
 }
@@ -20,5 +21,6 @@ pub struct NewUser {
     pub email: String,
     pub hashed_password: String,
     pub role: String,
-    pub is_validated: Option<bool>,
+    pub is_validated: Option<bool>, //Validation email
+    pub is_profile_validated: Option<bool>, // Validation par admin
 }

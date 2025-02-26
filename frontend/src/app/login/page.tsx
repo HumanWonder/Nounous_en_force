@@ -71,10 +71,10 @@ export default function Login() {
             </form>
             {message && <p>{message}</p>}
             <br/>
-            
+
             <br/>
-            <Button onClick={() => router.push("/")}>
-                Retour
+            <Button onClick={() => router.push("/register")}>
+                Pas encore inscrit ? Inscrivez-vous dès maintenant !
             </Button>
         </div>
     );

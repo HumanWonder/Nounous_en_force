@@ -54,6 +54,7 @@ diesel::table! {
         created_at -> Nullable<Timestamp>,
         #[max_length = 50]
         role -> Varchar,
+        is_profile_validated -> Nullable<Bool>,
     }
 }
 
