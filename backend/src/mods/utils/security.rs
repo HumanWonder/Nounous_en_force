@@ -1,17 +1,17 @@
 //Gestion hash et JWT
 use bcrypt::{hash, verify, DEFAULT_COST};
-use jsonwebtoken::{encode, Header, EncodingKey};
-use serde::Serialize;
-use uuid::Uuid;
 use chrono::{Duration, Utc};
+use jsonwebtoken::{decode, encode, EncodingKey, DecodingKey, Header, Validation, Algorithm};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-//faire env key
+//--------------------A SUPPRIMER !!!------------------- faire env key
 const SECRET_KEY: &[u8] = b"supersecretkey";
-
-#[derive(Serialize)]
+//--------------------A SUPPRIMER !!!-------------------
+#[derive(Serialize, Deserialize)]
 struct Claims {
     sub: String,
-    token_id: String,    // Identifiant unique pour chaque token
+    token_id: String, // Identifiant unique pour chaque token
     exp: usize,
 }
 
@@ -24,15 +24,32 @@ pub fn verify_password(password: &str, hashed: &str) -> bool {
 }
 
 pub fn generate_jwt(email: &str) -> String {
-    // Calculer l'expiration du token (par exemple dans 1 heure)
-    let expiration = (Utc::now() + Duration::hours(1)).timestamp() as usize;
+    // Calculer l'expiration du token (par exemple ici dans 15min)
+    let expiration = (Utc::now() + Duration::minutes(15)).timestamp() as usize;
 
     let claims = Claims {
         sub: email.to_string(),
         token_id: Uuid::new_v4().to_string(),
-        exp: expiration, 
+        exp: expiration,
     };
-    
-    encode(&Header::default(), &claims, &EncodingKey::from_secret(SECRET_KEY))
-        .expect("Erreur génération token")
+
+    encode(
+        &Header::new(jsonwebtoken::Algorithm::HS256),
+        &claims,
+        &EncodingKey::from_secret(SECRET_KEY.as_ref()),
+    )
+    .expect("Erreur génération token")
+}
+
+pub fn verify_jwt(token: &str) -> Result<String, String> {
+    // let SECRET_KEY = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
+
+    match decode::<Claims>(
+        token,
+        &DecodingKey::from_secret(SECRET_KEY.as_ref()),
+        &Validation::new(Algorithm::HS256),
+    ) {
+        Ok(data) => Ok(data.claims.sub), // Retourne l'email
+        Err(_) => Err("Token invalide".to_string()),
+    }
 }

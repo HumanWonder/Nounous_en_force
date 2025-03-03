@@ -13,8 +13,9 @@ pub fn send_verification_email(user_email: &str, token: &str) -> Result<(), Stri
         .to(user_email.parse().unwrap())
         .subject("Vérification de votre email")
         .body(format!(
-            "Cliquez sur ce lien pour valider votre compte : https://ton-site.com/validate/{}
-            \n Attention, ce lien expirera dans 1 heure.",
+            "Cliquez sur ce lien pour valider votre compte : 
+            http://localhost:3000/verify_email?token={}
+            \n Attention, ce lien expirera dans 15 minutes.",
             token
         ))
         .unwrap();

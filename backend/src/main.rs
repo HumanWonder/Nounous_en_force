@@ -12,7 +12,7 @@ async fn main() -> std::io::Result<()> {
     let pool = init_pool();
 
     HttpServer::new(move || {
-        let cors = Cors::default()
+        let cors = Cors::default()  //Autorise les requêtes originant du front
             .allowed_origin("http://localhost:3000")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec!["Content-Type", "Authorization"])
