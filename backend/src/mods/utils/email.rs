@@ -1,11 +1,17 @@
-use lettre::{Message, SmtpTransport, Transport};
-use lettre::transport::smtp::authentication::Credentials;
+use std::env;
 
-pub fn send_validation_email(user_email: &str, token: &str) -> Result<(), String> {
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::{Message, SmtpTransport, Transport};
+
+pub fn send_verification_email(user_email: &str, token: &str) -> Result<(), String> {
+    let smtp_user = env::var("SMTP_USER").expect("SMTP_USER must be set");
+    let smtp_pass = env::var("SMTP_PASS").expect("SMTP_PASS must be set");
+    let smtp_host = env::var("SMTP_HOST").unwrap_or_else(|_| "smtp.gmail.com".to_string()); // Par défaut Gmail
+
     let email = Message::builder()
-        .from("Ton Site <no-reply@tonsite.com>".parse().unwrap())
+        .from("No Reply <no-reply@sitesupercool.com>".parse().unwrap())
         .to(user_email.parse().unwrap())
-        .subject("Validation de votre compte")
+        .subject("Vérification de votre email")
         .body(format!(
             "Cliquez sur ce lien pour valider votre compte : https://ton-site.com/validate/{}
             \n Attention, ce lien expirera dans 1 heure.",
@@ -13,15 +19,18 @@ pub fn send_validation_email(user_email: &str, token: &str) -> Result<(), String
         ))
         .unwrap();
 
-    let creds = Credentials::new("axellefouq@hotmail.fr".to_string(), "@Charlie_Asher96".to_string());
+    let creds = Credentials::new(smtp_user.clone(), smtp_pass.clone());
 
-    let mailer = SmtpTransport::relay("outlook.live.com")
+    let mailer = SmtpTransport::relay(&smtp_host)
         .unwrap()
         .credentials(creds)
         .build();
 
     match mailer.send(&email) {
-        Ok(_) => Ok(()),
+        Ok(_) => {
+            println!("Email envoyé !");
+            Ok(())
+        }
         Err(e) => Err(format!("Erreur envoi email : {:?}", e)),
     }
 }

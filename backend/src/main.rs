@@ -1,12 +1,14 @@
 mod db;
 mod mods;
 use actix_cors::Cors;
+use dotenv::dotenv;
 use actix_web::{web, App, HttpServer};
 use db::init_pool;
 use mods::routes::init_routes;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
     let pool = init_pool();
 
     HttpServer::new(move || {

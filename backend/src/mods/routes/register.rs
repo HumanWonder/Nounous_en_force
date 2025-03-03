@@ -1,21 +1,18 @@
 //Routes pour inscriptions (owners et temps)
-use actix_web::{post, web, HttpResponse, Responder};
-use diesel::*;
 use crate::db::DbPool;
 use crate::mods::models::forms::RegisterUser;
 use crate::mods::models::user::NewUser;
+use crate::mods::utils::{email, security};
 use crate::mods::utils::schema::users::dsl::*;
-use crate::mods::utils::security::{self, hash_password};
+use crate::mods::utils::security::hash_password;
+use actix_web::{post, web, HttpResponse, Responder};
+use diesel::*;
 
 #[post("/register")]
-async fn register_user(
-    data: web::Json<RegisterUser>,
-    pool: web::Data<DbPool>,
-) -> impl Responder {
+async fn register_user(data: web::Json<RegisterUser>, pool: web::Data<DbPool>) -> impl Responder {
     println!("Registering user");
     let conn = &mut pool.get().expect("Erreur connexion DB");
     let conv_hashed_password = hash_password(&data.password);
-    let validation_token = security::generate_jwt(&data.email);
 
     let new_user = NewUser {
         email: data.email.clone(),
@@ -27,10 +24,19 @@ async fn register_user(
 
     match insert_into(users).values(&new_user).execute(conn) {
         Ok(_) => {
-            println!("sending mail");
+            println!("user registered");
+            //génération token
+            let validation_token = security::generate_jwt(&data.email);
+
             // Envoi mail de validation
-            crate::mods::utils::email::send_validation_email(&data.email, &validation_token).unwrap();
-            HttpResponse::Ok().body("New user registered successfully")},
+            match email::send_verification_email(&data.email, &validation_token) {
+                Ok(_) => HttpResponse::Ok().json("Email envoyé"),
+                Err(err) => {
+                    eprintln!("Erreur d'envoi d'email: {:?}", err);
+                    HttpResponse::InternalServerError().json("Erreur d'envoi d'email")
+                }
+            }
+        }
         Err(err) => {
             eprintln!("Erreur insertion user : {:?}", err);
             HttpResponse::InternalServerError().body("Failed to register user")
