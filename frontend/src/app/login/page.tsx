@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "../components/button";
@@ -26,15 +26,18 @@ export default function Login() {
                 },
                 body: JSON.stringify(formData),
             });
+            const text = await response.text();  // 🔥 Affiche la réponse brute
+            console.log("Réponse brute du serveur:", text);
+
+            const data = JSON.parse(text); // Convertir en JSON
+            console.log("Réponse JSON du serveur:", data);
 
             if (response.ok) {
                 setMessage("Connexion réussie !");
-            } else {
-                setMessage("Erreur de connexion.");
             }
         } catch (error) {
             console.error("Erreur:", error);
-            setMessage("Erreur réseau");
+            setMessage("Erreur réseau. Vérifiez votre boîte mail.");
         }
     };
     useEffect(() => {
@@ -70,9 +73,9 @@ export default function Login() {
                 <Button type="submit">Se connecter</Button>
             </form>
             {message && <p>{message}</p>}
-            <br/>
+            <br />
 
-            <br/>
+            <br />
             <Button onClick={() => router.push("/register")}>
                 Pas encore inscrit ? Inscrivez-vous dès maintenant !
             </Button>

@@ -1,11 +1,22 @@
 // Struct des formulaires d'inscription
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 #[derive(Deserialize)]
 pub struct RegisterUser {
     pub email: String,
     pub password: String,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct LoginResponse {
+    pub id: Uuid,
+    pub token: String,
+}
+#[derive(Deserialize, Serialize)]
+pub struct LoginUser {
+    pub email: String,
+    pub password: String,
+}
 
 // #[derive(Deserialize)]
 // pub struct RegisterOwner {
