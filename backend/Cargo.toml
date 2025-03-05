@@ -14,7 +14,7 @@ bcrypt = "0.17.0"
 #Typage DateTime
 chrono = { version = "0.4.39", features = ["serde"] }
 # ORM (Mapping Object-Relationnel) pour PostgreSQL
-diesel = { version = "2.2.7", features = ["postgres", "r2d2"] }
+diesel = { version = "2.2.7", features = ["postgres", "r2d2", "uuid", "chrono"] }
 diesel_migrations = "2.2.0"
 # Gestion des variables d'environnement
 dotenv = "0.15.0"
@@ -31,4 +31,5 @@ uuid = {version = "1.15.0", features = [
     "v4",                # Lets you generate random UUIDs
     "fast-rng",          # Use a faster (but still sufficiently random) RNG
     "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+    "serde", 
 ]}

@@ -15,15 +15,15 @@ async fn login(
 
     let user = users
         .filter(email.eq(&credentials.email))
-        .select((id, hashed_password, email))
-        .first::<(i32, String, String)>(conn)
+        .select(User::as_select())
+        .first(conn)
         .optional()
         .expect("Erreur requête utilisateur");
 
     match user {
         Some(user) => {
-            if verify_password(&credentials.hashed_password, &user.1) {
-                let token = generate_jwt(&user.2);
+            if verify_password(&credentials.hashed_password, &user.hashed_password) {
+                let token = generate_jwt(&user.email);
                 HttpResponse::Ok().json(token)
             } else {
                 HttpResponse::Unauthorized().body("Mot de passe incorrect")

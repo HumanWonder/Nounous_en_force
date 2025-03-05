@@ -3,10 +3,12 @@
 use crate::mods::utils::schema::users;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Queryable, Selectable, Serialize, Deserialize)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {
-    pub id: i32,
+    pub id: Uuid,
     pub email: String,
     pub hashed_password: String,
     pub is_validated: Option<bool>,
