@@ -26,18 +26,28 @@ export default function Login() {
                 },
                 body: JSON.stringify(formData),
             });
-            const text = await response.text();  // 🔥 Affiche la réponse brute
-            console.log("Réponse brute du serveur:", text);
+            const text = await response.text();  // Affiche la réponse brute
+            // console.log("Réponse brute du serveur:", text);
 
             const data = JSON.parse(text); // Convertir en JSON
-            console.log("Réponse JSON du serveur:", data);
+            // console.log("Réponse JSON du serveur:", data);
 
             if (response.ok) {
                 setMessage("Connexion réussie !");
+                //router.push("/dashboard");
+            } else {
+                if (data.message) {
+                    //Message spécifique du serveur
+                    setMessage(data.message);
+                } else {
+                    //Message générique
+                    setMessage("Erreur survenue. Essayez à nouveau.");
+                }
             }
         } catch (error) {
             console.error("Erreur:", error);
-            setMessage("Erreur réseau. Vérifiez votre boîte mail.");
+            //Erreur réseau ou interne au serveur
+            setMessage("Erreur réseau. Vérifiez votre connexion et réessayez.");
         }
     };
     useEffect(() => {

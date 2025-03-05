@@ -1,9 +1,9 @@
 // Routes pour connexion et JWT
 use actix_web::{post, web, HttpResponse, Responder};
 use diesel::*;
-use dsl::not;
 use uuid::Uuid;
 use crate::db::DbPool;
+use crate::mods::models::apierror::ApiError;
 use crate::mods::models::forms::{LoginResponse, LoginUser};
 use crate::mods::utils::schema::users::dsl::*;
 use crate::mods::utils::security::{verify_password, generate_jwt};
@@ -16,6 +16,7 @@ pub async fn login(
     let conn = &mut pool.get().expect("Erreur connexion DB");
     println!("Logging in user");
 
+    //Sélectionne la première occurence de l'utilisateur avec l'email correspondant
     let user = match users 
         .filter(email.eq(&credentials.email))
         .select((id, hashed_password, email, is_validated))
@@ -29,7 +30,7 @@ pub async fn login(
     match user {
         Some(user) => {
             if !bool::from(user.3) {
-                return HttpResponse::Unauthorized().body("Veuillez valider votre email");
+                return Err(ApiError::without_code("Veuillez valider votre mail"));
             };
             if verify_password(&credentials.password, &user.1) {
                 let token = generate_jwt(&user.2);
@@ -37,11 +38,11 @@ pub async fn login(
                     id: user.0,
                     token,
                 };
-                HttpResponse::Ok().json(response)
+                Ok(HttpResponse::Ok().json(response))
             } else {
-                HttpResponse::Unauthorized().body("Mot de passe incorrect")
+                Err(ApiError::new("Mot de passe incorrect", Some("invalid_credentials".to_string())))
             }
         }
-        None => HttpResponse::Unauthorized().body("Utilisateur non trouvé"),
+        None => Err(ApiError::new("Utilisateur non trouvé", Some("user_not_found".to_string()))),
     }
 }
