@@ -4,7 +4,7 @@ use actix_cors::Cors;
 use dotenv::dotenv;
 use actix_web::{web, App, HttpServer};
 use db::init_pool;
-use mods::routes::init_routes;
+use mods::{routes::init_routes, utils::security::get_front_conn};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -13,7 +13,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let cors = Cors::default()  //Autorise les requêtes originant du front
-            .allowed_origin("http://localhost:3000")
+            .allowed_origin(&get_front_conn())//charge l'url
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec!["Content-Type", "Authorization"])
             .max_age(3600);

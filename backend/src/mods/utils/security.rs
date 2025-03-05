@@ -1,13 +1,17 @@
 //Gestion hash et JWT
 use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::{Duration, Utc};
-use jsonwebtoken::{decode, encode, EncodingKey, DecodingKey, Header, Validation, Algorithm};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use std::env;
+use dotenv::dotenv;
 
 //--------------------A SUPPRIMER !!!------------------- faire env key
 const SECRET_KEY: &[u8] = b"supersecretkey";
 //--------------------A SUPPRIMER !!!-------------------
+
+// Structure pour les claims du JWT
 #[derive(Serialize, Deserialize)]
 struct Claims {
     sub: String,
@@ -52,4 +56,10 @@ pub fn verify_jwt(token: &str) -> Result<String, String> {
         Ok(data) => Ok(data.claims.sub), // Retourne l'email
         Err(_) => Err("Token invalide".to_string()),
     }
+}
+
+pub fn get_front_conn() -> String {
+    dotenv().ok();
+    env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3000".to_string())
+    // Valeur par défaut
 }

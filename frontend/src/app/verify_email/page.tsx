@@ -31,7 +31,7 @@ export default function VerifyEmail() {
             console.log(data);
             if (data.success) {
                 setMessage("Votre email a été vérifié avec succès !");
-                setTimeout(() => router.push("/login"), 3000); // Redirection après 2s
+                setTimeout(() => router.push("/login"), 3000); // Redirection après 3s
             } else {
                 setMessage("Échec de la vérification de l'email.");
                 setTimeout(() => router.push("/error"), 2000);
