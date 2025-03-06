@@ -87,7 +87,7 @@ export default function Login() {
 
             <br />
             <Button onClick={() => router.push("/register")}>
-                Pas encore inscrit ? Inscrivez-vous dès maintenant !
+                Pas encore de compte ? Inscrivez-vous dès maintenant !
             </Button>
         </div>
     );

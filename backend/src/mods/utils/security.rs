@@ -1,11 +1,14 @@
+use actix_web::{cookie::{time::Duration, Cookie}, HttpRequest};
 //Gestion hash et JWT
 use bcrypt::{hash, verify, DEFAULT_COST};
-use chrono::{Duration, Utc};
+use chrono::Utc;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use std::env;
 use dotenv::dotenv;
+
+use crate::mods::models::apierror::ApiError;
 
 //--------------------A SUPPRIMER !!!------------------- faire env key
 const SECRET_KEY: &[u8] = b"supersecretkey";
@@ -28,12 +31,25 @@ pub fn verify_password(password: &str, hashed: &str) -> bool {
     verify(password, hashed).unwrap_or(false)
 }
 
-pub fn generate_jwt(email: &str, user_id: Option<Uuid>, duration: Duration) -> String {
+pub fn create_auth_cookie(token: String) -> Cookie<'static> {
+    //Même temps d'expiration que le token de session active
+    let expiration_time = Duration::hours(2);
+    Cookie::build("auth_token", token)
+        .http_only(true)    // Empêche l'accès au token via JS (protection XSS)
+        // Doit être sécurisé en production (HTTPS)
+        // .secure(true)
+        .same_site(actix_web::cookie::SameSite::Strict)//Contre les attaques CSRF (utilisation de la session active d'un utilisateur pour qu'il fasse une requête malicieuse souvent par l'intermédiaire d'un lien)
+        .max_age(expiration_time)
+        .finish()
+}
+
+pub fn generate_jwt(email: &str, user_id: Option<Uuid>, duration: chrono::Duration) -> String {
     // Calculer l'expiration du token (par exemple ici dans 15min)
     let expiration = (Utc::now() + duration).timestamp() as usize;
 
     let claims = Claims {
         sub: email.to_string(),
+        //Renvoie None si user_id n'existe pas
         user_id: user_id.map(|id| id.to_string()),
         token_id: Uuid::new_v4().to_string(),
         exp: expiration,
@@ -60,6 +76,20 @@ pub fn verify_jwt(token: &str) -> Result<String, String> {
     }
 }
 
+//Fonction qui check si le cookie contient toujours un token valide. Permet d'authentifier le user et permettre sa requête
+pub fn extract_token_from_cookie(req: &HttpRequest) -> Result<String, ApiError> {
+    if let Some(cookie) = req.cookie("auth_token") {
+        let token = cookie.value().to_string();
+        match verify_jwt(&token) {
+            Ok(email) => Ok(email), // Retourne l'email si le token est valide
+            Err(_) => Err(ApiError::new("Token invalide", Some("invalid_credentials".to_string()))),
+        }
+    } else {
+        Err(ApiError::new("Token manquant", Some("invalid_credentials".to_string())))
+    }
+}
+
+//A voir si utile au déploiement
 pub fn get_front_conn() -> String {
     dotenv().ok();
     env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3000".to_string())

@@ -7,11 +7,11 @@ pub struct RegisterUser {
     pub password: String,
 }
 
-#[derive(Deserialize, Serialize)]
-pub struct LoginResponse {
-    pub id: Uuid,
-    pub token: String,
-}
+// #[derive(Deserialize, Serialize)]
+// pub struct LoginResponse {
+//     pub id: Uuid,
+//     pub token: String,
+// }
 #[derive(Deserialize, Serialize)]
 pub struct LoginUser {
     pub email: String,

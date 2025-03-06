@@ -5,9 +5,9 @@ use diesel::*;
 use uuid::Uuid;
 use crate::db::DbPool;
 use crate::mods::models::apierror::ApiError;
-use crate::mods::models::forms::{LoginResponse, LoginUser};
+use crate::mods::models::forms::LoginUser;
 use crate::mods::utils::schema::users::dsl::*;
-use crate::mods::utils::security::{verify_password, generate_jwt};
+use crate::mods::utils::security::{self, generate_jwt, verify_password};
 
 #[post("/login")]
 pub async fn login(
@@ -30,16 +30,20 @@ pub async fn login(
         println!("Checking credentials : {:?}", user);
     match user {
         Some(user) => {
-            if !bool::from(user.3) {
+            //Si is_validated == false
+            if !user.3 {
                 return Err(ApiError::without_code("Veuillez valider votre mail"));
             };
             if verify_password(&credentials.password, &user.1) {
                 let token = generate_jwt(&user.2, Some(user.0), Duration::hours(2));
-                let response = LoginResponse {
-                    id: user.0,
-                    token,
-                };
-                Ok(HttpResponse::Ok().json(response))
+                let auth_cookie = security::create_auth_cookie(token.clone());
+
+                Ok(HttpResponse::Ok().cookie(auth_cookie).json("Connexion réussie"))
+                // let response = LoginResponse {
+                //     id: user.0,
+                //     token,
+                // };
+                // Ok(HttpResponse::Ok().json(response))
             } else {
                 Err(ApiError::new("Mot de passe incorrect", Some("invalid_credentials".to_string())))
             }
