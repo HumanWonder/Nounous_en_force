@@ -36,6 +36,7 @@ impl ResponseError for ApiError {
         match self.error_code.as_deref() {
             Some("invalid_credentials") => actix_web::http::StatusCode::UNAUTHORIZED,
             Some("user_not_found") => actix_web::http::StatusCode::NOT_FOUND,
+            Some("db_update_failed") => actix_web::http::StatusCode::BAD_REQUEST,
             _ => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

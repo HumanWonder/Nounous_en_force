@@ -4,6 +4,7 @@ use actix_web::{post, web, HttpResponse, Responder};
 use diesel::prelude::*;
 use serde_json::json;
 use crate::db::DbPool;
+use crate::mods::models::apierror::ApiError;
 use crate::mods::utils::schema::users;
 use crate::mods::utils::security;
 
@@ -13,7 +14,8 @@ pub async fn verify_email(data: web::Json<HashMap<String, String>>, pool: web::D
     println!("Requête pour la vérification email reçue.");
     let token = match data.get("token") {
         Some(t) => t,
-        None => return HttpResponse::BadRequest().json("Token manquant"),
+        // None => return HttpResponse::BadRequest().json("Token manquant"),
+        None => return Err(ApiError::new("Token manquant", Some("invalid_credentials".to_string()))),
     };
     match security::verify_jwt(token) {
         Ok(email) => {
@@ -26,26 +28,20 @@ pub async fn verify_email(data: web::Json<HashMap<String, String>>, pool: web::D
             {
                 Ok(_) => {
                     println!("Email vérifié avec succès ! Statut modifié");
-                    HttpResponse::Ok().json(json!({
+                    Ok(HttpResponse::Ok().json(json!({
                         "success": true,
                         "message": "Votre email a été vérifié avec succès !"
-                    }))
+                    })))
                 },
                 Err(err) => {
                     eprintln!("Erreur mise à jour user : {:?}", err);
-                    HttpResponse::InternalServerError().json(json!({
-                        "success": false,
-                        "message": "Erreur mise à jour du user."
-                    }))
+                    Err(ApiError::new("Erreur mise à jour statut user", Some("db_update_failed".to_string())))
                 }
             }
         }
         Err(_) => {
             println!("Token invalide ou expiré");
-            HttpResponse::Unauthorized().json(json!({
-                "success": false,
-                "message": "Token invalide ou expiré."
-            }))
+            Err(ApiError::new("Token invalide ou expiré.", Some("invalid_credentials".to_string())))
         },
     }
 }
