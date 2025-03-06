@@ -15,6 +15,7 @@ const SECRET_KEY: &[u8] = b"supersecretkey";
 #[derive(Serialize, Deserialize)]
 struct Claims {
     sub: String,
+    user_id: Option<String>,
     token_id: String, // Identifiant unique pour chaque token
     exp: usize,
 }
@@ -27,12 +28,13 @@ pub fn verify_password(password: &str, hashed: &str) -> bool {
     verify(password, hashed).unwrap_or(false)
 }
 
-pub fn generate_jwt(email: &str) -> String {
+pub fn generate_jwt(email: &str, user_id: Option<Uuid>, duration: Duration) -> String {
     // Calculer l'expiration du token (par exemple ici dans 15min)
-    let expiration = (Utc::now() + Duration::minutes(15)).timestamp() as usize;
+    let expiration = (Utc::now() + duration).timestamp() as usize;
 
     let claims = Claims {
         sub: email.to_string(),
+        user_id: user_id.map(|id| id.to_string()),
         token_id: Uuid::new_v4().to_string(),
         exp: expiration,
     };

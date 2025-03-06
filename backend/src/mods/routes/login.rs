@@ -1,5 +1,6 @@
 // Routes pour connexion et JWT
 use actix_web::{post, web, HttpResponse, Responder};
+use chrono::Duration;
 use diesel::*;
 use uuid::Uuid;
 use crate::db::DbPool;
@@ -33,7 +34,7 @@ pub async fn login(
                 return Err(ApiError::without_code("Veuillez valider votre mail"));
             };
             if verify_password(&credentials.password, &user.1) {
-                let token = generate_jwt(&user.2);
+                let token = generate_jwt(&user.2, Some(user.0), Duration::hours(2));
                 let response = LoginResponse {
                     id: user.0,
                     token,

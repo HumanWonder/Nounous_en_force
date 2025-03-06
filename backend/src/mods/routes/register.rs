@@ -6,6 +6,7 @@ use crate::mods::models::user::NewUser;
 use crate::mods::utils::{email, security};
 use crate::mods::utils::schema::users::dsl::*;
 use crate::mods::utils::security::hash_password;
+use chrono::Duration;
 use actix_web::{post, web, HttpResponse, Responder};
 use diesel::*;
 
@@ -27,7 +28,7 @@ async fn register_user(data: web::Json<RegisterUser>, pool: web::Data<DbPool>) -
         Ok(_) => {
             println!("user registered");
             //génération token
-            let validation_token = security::generate_jwt(&data.email);
+            let validation_token = security::generate_jwt(&data.email, None, Duration::minutes(15));
 
             // Envoi mail de validation
             match email::send_verification_email(&data.email, &validation_token) {
