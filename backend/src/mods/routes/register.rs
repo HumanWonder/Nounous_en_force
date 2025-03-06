@@ -1,5 +1,6 @@
 //Routes pour inscriptions (owners et temps)
 use crate::db::DbPool;
+use crate::mods::models::apierror::ApiError;
 use crate::mods::models::forms::RegisterUser;
 use crate::mods::models::user::NewUser;
 use crate::mods::utils::{email, security};
@@ -18,8 +19,8 @@ async fn register_user(data: web::Json<RegisterUser>, pool: web::Data<DbPool>) -
         email: data.email.clone(),
         hashed_password: conv_hashed_password,
         role: "pending".to_string(),
-        is_validated: Some(false),
-        is_profile_validated: Some(false),
+        is_validated: false,
+        is_profile_validated: false,
     };
 
     match insert_into(users).values(&new_user).execute(conn) {
@@ -30,16 +31,16 @@ async fn register_user(data: web::Json<RegisterUser>, pool: web::Data<DbPool>) -
 
             // Envoi mail de validation
             match email::send_verification_email(&data.email, &validation_token) {
-                Ok(_) => HttpResponse::Ok().json("Email envoyé"),
+                Ok(_) => Ok(HttpResponse::Ok().json("Email envoyé")),
                 Err(err) => {
-                    eprintln!("Erreur d'envoi d'email: {:?}", err);
-                    HttpResponse::InternalServerError().json("Erreur d'envoi d'email")
+                    println!("Erreur d'envoi d'email: {:?}", err);
+                    Err(ApiError::new("Erreur dans l'envoi de l'email", None))
                 }
             }
         }
         Err(err) => {
-            eprintln!("Erreur insertion user : {:?}", err);
-            HttpResponse::InternalServerError().body("Failed to register user")
+            println!("Erreur insertion user : {:?}", err);
+            Err(ApiError::new("Failed to register user", Some("db_insert_failed".to_string())))
         }
     }
 }

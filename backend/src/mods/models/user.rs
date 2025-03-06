@@ -23,6 +23,6 @@ pub struct NewUser {
     pub email: String,
     pub hashed_password: String,
     pub role: String,
-    pub is_validated: Option<bool>, //Validation email
-    pub is_profile_validated: Option<bool>, // Validation par admin
+    pub is_validated: bool, //Validation email
+    pub is_profile_validated: bool, // Validation par admin
 }
