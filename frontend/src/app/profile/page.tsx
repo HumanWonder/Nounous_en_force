@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../hooks/useAuth";
 
 
 // Déclare un type pour les données de l'utilisateur, sinon TypeScript panique en voyant null
@@ -11,25 +12,24 @@ type UserData = {
 
 export default function Profile() {
     const router = useRouter();
+    const {token, isAuthenticated} = useAuth();
     const [userData, setUserData] = useState<UserData | null>(null);
     const [message, setMessage] = useState("");
 
     useEffect(() => {
         const fetchUserProfile = async () => {
-            // Récupérer le token depuis les cookies (remarque: ajuster selon ton outil de gestion de cookies)
-            const token = document.cookie.split("; ").find(row => row.startsWith("auth_token="))?.split("=")[1];
+            // // Récupérer le token depuis les cookies (remarque: ajuster selon ton outil de gestion de cookies)
 
-            if (!token) {
-                router.push("/login"); // Redirige vers la page de login si aucun token
+            if (!token || !isAuthenticated) {
+                setMessage("Token inexistant, connexion non authentifiée");
+                // setTimeout(() => router.push("/login"), 5000); // Redirige vers la page de login si aucun token
                 return;
             }
 
             try {
                 const response = await fetch("http://127.0.0.1:8080/profile", {
                     method: "GET",
-                    // headers: {
-                    //     "Authorization": `Bearer ${token}`, // Envoie le token dans l'en-tête Authorization
-                    // },
+                    credentials: "include",
                 });
 
                 const data = await response.json();
@@ -39,7 +39,7 @@ export default function Profile() {
                 } else {
                     setMessage(data.message || "Erreur de récupération des données. Veuillez vous reconnecter.");
 
-                    setTimeout(() => router.push("/login"), 5000); // Redirige vers la page de login si le token est invalide
+                    // setTimeout(() => router.push("/login"), 5000); // Redirige vers la page de login si le token est invalide
                 }
             } catch (error) {
                 console.error("Erreur lors de la récupération du profil:", error);
@@ -48,7 +48,7 @@ export default function Profile() {
         };
 
         fetchUserProfile();
-    }, [router]);
+    }, [isAuthenticated, token, router]);
 
     return (
         <div>

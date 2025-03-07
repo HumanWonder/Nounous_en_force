@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 #[get("/profile")]
 pub async fn get_profile(req: HttpRequest, pool: web::Data<DbPool>) -> impl Responder {
+    println!("Getting profile info....");
     match security::extract_token_from_cookie(&req) {
         Ok(mail) => {
             // Connexion à la base de données

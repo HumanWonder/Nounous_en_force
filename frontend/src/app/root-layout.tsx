@@ -4,13 +4,18 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "./components/button";
+import { useAuth } from "./hooks/useAuth";
 
 export default function RootLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+
+    const {isAuthenticated, logout} = useAuth();
     const router = useRouter();
+
+    console.log(isAuthenticated);
     useEffect(() => {
         document.body.classList.add('bg-gray-100', 'h-screen');
     }, []);
@@ -21,6 +26,11 @@ export default function RootLayout({
                 <header>
                     <nav>
                         <Button onClick={() => router.push("/")}>Home</Button>
+                        {isAuthenticated ? (
+                            <Button onClick={logout}>Logout</Button>
+                        ) : (
+                            <Button onClick={() => router.push("/login")}>Login</Button>
+                        )}
                         <Button onClick={()=> router.push("/profile")}>Profile</Button>
                     </nav>
                 </header>

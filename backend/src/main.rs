@@ -16,6 +16,7 @@ async fn main() -> std::io::Result<()> {
             .allowed_origin(&get_front_conn())//charge l'url
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec!["Content-Type", "Authorization"])
+            .supports_credentials() // Permet l'envoi des cookies
             .max_age(3600);
 
         App::new()

@@ -1,4 +1,4 @@
-use actix_web::{cookie::{time::Duration, Cookie}, HttpRequest};
+use actix_web::{cookie::{time::Duration, Cookie, SameSite}, HttpRequest};
 //Gestion hash et JWT
 use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::Utc;
@@ -29,18 +29,6 @@ pub fn hash_password(password: &str) -> String {
 
 pub fn verify_password(password: &str, hashed: &str) -> bool {
     verify(password, hashed).unwrap_or(false)
-}
-
-pub fn create_auth_cookie(token: String) -> Cookie<'static> {
-    //Même temps d'expiration que le token de session active
-    let expiration_time = Duration::hours(2);
-    Cookie::build("auth_token", token)
-        .http_only(true)    // Empêche l'accès au token via JS (protection XSS)
-        // Doit être sécurisé en production (HTTPS)
-        // .secure(true)
-        .same_site(actix_web::cookie::SameSite::Strict)//Contre les attaques CSRF (utilisation de la session active d'un utilisateur pour qu'il fasse une requête malicieuse souvent par l'intermédiaire d'un lien)
-        .max_age(expiration_time)
-        .finish()
 }
 
 pub fn generate_jwt(email: &str, user_id: Option<Uuid>, duration: chrono::Duration) -> String {
@@ -74,6 +62,36 @@ pub fn verify_jwt(token: &str) -> Result<String, String> {
         Ok(data) => Ok(data.claims.sub), // Retourne l'email
         Err(_) => Err("Token invalide".to_string()),
     }
+}
+
+//Création d'un cookie pour session de conenxion d'un utilisateur
+pub fn create_auth_cookie(token: Option<String>) -> Cookie<'static> {
+    //Même temps d'expiration que le token de session active
+    let expiration_time = Duration::hours(2);
+
+    let cookie = match token {
+        Some(token) =>{
+            Cookie::build("auth_token", token)
+            .path("/")  //Permet au front d'accéder au cookie
+            .http_only(true)    // Empêche l'accès au token via JS (protection XSS)
+            // Doit être sécurisé en production (HTTPS)
+            .secure(false)  //Passer à true en prod
+            .same_site(SameSite::None)//Contre les attaques CSRF (utilisation de la session active d'un utilisateur pour qu'il fasse une requête malicieuse souvent par l'intermédiaire d'un lien)
+            .max_age(expiration_time)
+            .finish()
+        },
+
+        None => {
+            // Cookie vide et expiré pour la déconnexion
+            Cookie::build("auth_token", "")
+                .http_only(true)
+                .same_site(SameSite::Strict)
+                .max_age(Duration::seconds(0)) // Expire immédiatement
+                .finish()
+        }
+    };
+    cookie
+    
 }
 
 //Fonction qui check si le cookie contient toujours un token valide. Permet d'authentifier le user et permettre sa requête

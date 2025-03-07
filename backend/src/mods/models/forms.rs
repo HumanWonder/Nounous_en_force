@@ -1,6 +1,5 @@
 // Struct des formulaires d'inscription
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 #[derive(Deserialize)]
 pub struct RegisterUser {
     pub email: String,

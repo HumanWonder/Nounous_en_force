@@ -10,5 +10,6 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(verifyemail::verify_email)
         .service(register::register_user)
         .service(login::login)
+        .service(login::logout)
         .service(profile::get_profile);
 }

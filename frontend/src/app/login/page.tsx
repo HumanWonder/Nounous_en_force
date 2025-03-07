@@ -34,7 +34,8 @@ export default function Login() {
 
             if (response.ok) {
                 setMessage("Connexion réussie !");
-                //router.push("/dashboard");
+                console.log("REDIRECTION");
+                setTimeout(() => router.push("/profile"), 2000);
             } else {
                 if (data.message) {
                     //Message spécifique du serveur
