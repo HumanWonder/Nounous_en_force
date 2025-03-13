@@ -75,8 +75,8 @@ pub fn create_auth_cookie(token: Option<String>) -> Cookie<'static> {
             .path("/")  //Permet au front d'accéder au cookie
             .http_only(true)    // Empêche l'accès au token via JS (protection XSS)
             // Doit être sécurisé en production (HTTPS)
-            .secure(false)  //Passer à true en prod
-            .same_site(SameSite::None)//Contre les attaques CSRF (utilisation de la session active d'un utilisateur pour qu'il fasse une requête malicieuse souvent par l'intermédiaire d'un lien)
+            // .secure(true)  //Passer à true en prod
+            // .same_site(SameSite::None)//Contre les attaques CSRF (utilisation de la session active d'un utilisateur pour qu'il fasse une requête malicieuse souvent par l'intermédiaire d'un lien)
             .max_age(expiration_time)
             .finish()
         },

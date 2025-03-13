@@ -34,11 +34,15 @@ pub async fn login(credentials: web::Json<LoginUser>, pool: web::Data<DbPool>) -
             };
             if verify_password(&credentials.password, &user.1) {
                 let token = generate_jwt(&user.2, Some(user.0), chrono::Duration::hours(2));
-                let auth_cookie = security::create_auth_cookie(Some(token));
+                let auth_cookie = security::create_auth_cookie(Some(token.clone()));
 
                 Ok(HttpResponse::Ok()
                     .cookie(auth_cookie)
-                    .json("Connexion réussie"))
+                    //Envoi du token uniquement en local => Production : juste message
+                    .json(serde_json::json!({
+                        "message": "Connexion réussie",
+                        "token": token.clone()
+                    })))
             } else {
                 Err(ApiError::new(
                     "Mot de passe incorrect",
