@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "../components/button";
 
+const isDev = process.env.NEXT_PUBLIC_ENV === "development";
+
 export default function Login() {
 
     const router = useRouter();
@@ -21,6 +23,7 @@ export default function Login() {
         try {
             const response = await fetch("http://127.0.0.1:8080/login", {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -34,6 +37,13 @@ export default function Login() {
 
             if (response.ok) {
                 setMessage("Connexion réussie !");
+                console.log("Valeur de NEXT_PUBLIC_ENV :", process.env.NEXT_PUBLIC_ENV);
+                
+                if (isDev) {
+                    console.log("STOCKING TOKEN : ", data.token);
+                    localStorage.setItem("auth_token", data.token);
+                }
+
                 console.log("REDIRECTION");
                 setTimeout(() => router.push("/profile"), 2000);
             } else {

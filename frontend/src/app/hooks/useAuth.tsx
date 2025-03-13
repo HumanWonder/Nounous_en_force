@@ -2,25 +2,35 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
+// import Cookies from "js-cookie";
+const isDev = process.env.NEXT_PUBLIC_ENV === "development";
 
 export function useAuth() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [token, setToken] = useState<string | null>(null); // état pour le token
     const router = useRouter();
 
+    console.log("getting token..... isDev is : ", isDev);
     useEffect(() => {
-        console.log("getting token.....");
-        const token = Cookies.get("auth_token"); // Récupère le token depuis les cookies
+        if (isDev) {
+            console.log("getting token");
+
+            const storedToken = localStorage.getItem("auth_token");
+            setToken(storedToken) //changement d'état
+            console.log("stored : ", storedToken);
+        }
+    }, []);
+    // const token = Cookies.get("auth_token"); // Récupère le token depuis les cookies
+
+    useEffect(() => {
         if (token) {
             console.log("TOKEN FOUND");
-            setToken(token) //changement d'état
             setIsAuthenticated(true); // Met à jour l'état selon la présence du token
         } else {
             console.log("No token");
             setIsAuthenticated(false);
         }
-    }, []);
+    }, [token]);
 
     const logout = async () => {
 
@@ -31,8 +41,10 @@ export function useAuth() {
                 credentials: "include", //Pour s'assurer que le cookie est bien envoyé
             });
 
-            if (response.ok) {
-                Cookies.remove("auth_token"); // Supprime le token côté client
+            if (response.ok && isDev) {
+                // Cookies.remove("auth_token"); // Supprime le token côté client
+                localStorage.removeItem("auth_token");
+
                 setIsAuthenticated(false); // Met à jour l'état
                 setToken(null) //Réinitialise le token
                 router.push("/login");  //Redirection vers la page de connexion
@@ -42,5 +54,5 @@ export function useAuth() {
         }
     };
 
-    return { isAuthenticated, token,logout };
+    return { isAuthenticated, token, logout };
 }
