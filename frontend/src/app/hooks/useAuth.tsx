@@ -5,32 +5,41 @@ import { useRouter } from "next/navigation";
 // import Cookies from "js-cookie";
 const isDev = process.env.NEXT_PUBLIC_ENV === "development";
 
+function isTokenExipred(token: string | null): boolean {
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1])); // Décodage du JWT
+        const exp = payload.exp * 1000;
+        return Date.now() > exp;
+    } catch (error) {
+        console.error("Erreur lors du décodage du token :", error);
+        return true;
+    }
+}
+
 export function useAuth() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [token, setToken] = useState<string | null>(null); // état pour le token
     const router = useRouter();
 
-    console.log("getting token..... isDev is : ", isDev);
     useEffect(() => {
+        console.log("getting token..... isDev is : ", isDev);
         if (isDev) {
-            console.log("getting token");
-
             const storedToken = localStorage.getItem("auth_token");
-            setToken(storedToken) //changement d'état
-            console.log("stored : ", storedToken);
+            if (storedToken && !isTokenExipred(storedToken)) {
+                setToken(storedToken);
+                console.log("TOKEN FOUND");
+                setIsAuthenticated(true); // Met à jour l'état selon la présence du token
+            } else {
+                console.log("No token, or token expired");
+                setToken(null);
+                setIsAuthenticated(false);
+                localStorage.removeItem("auth_token"); //Nettoyage si token expiré
+            }
         }
     }, []);
-    // const token = Cookies.get("auth_token"); // Récupère le token depuis les cookies
-
-    useEffect(() => {
-        if (token) {
-            console.log("TOKEN FOUND");
-            setIsAuthenticated(true); // Met à jour l'état selon la présence du token
-        } else {
-            console.log("No token");
-            setIsAuthenticated(false);
-        }
-    }, [token]);
+    // const token = Cookies.get("auth_token"); // Récupère le token depuis les cookies => à la place de localStorage
 
     const logout = async () => {
 

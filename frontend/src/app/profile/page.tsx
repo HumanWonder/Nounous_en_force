@@ -7,12 +7,12 @@ import { useAuth } from "../hooks/useAuth";
 // Déclare un type pour les données de l'utilisateur, sinon TypeScript panique en voyant null
 type UserData = {
     email: string;
-    role: string; 
+    role: string;
 };
 
 export default function Profile() {
     const router = useRouter();
-    const {token, isAuthenticated} = useAuth();
+    const { token, isAuthenticated } = useAuth();
     const [userData, setUserData] = useState<UserData | null>(null);
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(true); // Ajout d'un état de chargement
@@ -20,7 +20,7 @@ export default function Profile() {
     useEffect(() => {
         const fetchUserProfile = async () => {
             // // Récupérer le token depuis les cookies (remarque: ajuster selon ton outil de gestion de cookies)
-            console.log("Token in profile : ",token)
+            console.log("Token in profile : ", token)
             if (!token || !isAuthenticated) {
                 setMessage("Token inexistant, connexion non authentifiée");
                 // setTimeout(() => router.push("/login"), 5000); // Redirige vers la page de login si aucun token
@@ -53,7 +53,7 @@ export default function Profile() {
                 setLoading(false); // Marque le chargement comme terminé
             }
         };
-        
+
         if (token && isAuthenticated) {
             fetchUserProfile();
         } else {
@@ -73,6 +73,13 @@ export default function Profile() {
                     <h2>Profil de l'utilisateur</h2>
                     <p>Email : {userData[1]}</p>
                     <p>{userData[2]}</p>
+                    {userData[2] === "pending" && (
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                            onClick={() => router.push("register/complete/")}>
+                            Compléter mon inscription
+                        </button>
+                    )}
+
                     {/* Affiche d'autres données utilisateur ici */}
                 </div>
             ) : (
