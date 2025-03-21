@@ -55,73 +55,57 @@ async fn register_temp(
     data: web::Json<TempRegistration>,
     pool: web::Data<DbPool>,
     req: HttpRequest,
-) -> impl Responder {
+) -> Result<HttpResponse, ApiError> {
     println!("Registering temp user");
 
-    // Vérification du token JWT dans l'en-tête
-    if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
-        if let Ok(auth_value) = auth_header.to_str() {
-            if let Some(token) = auth_value.strip_prefix("Bearer ") {
-                match verify_jwt(token) {
-                    Ok(user_email) => {
-                        // Récupérer l'user_id de l'utilisateur à partir de son email
-                        let conn = &mut pool.get().expect("Erreur connexion DB");
+    // Vérification du token JWT dans l'en-tête ou via cookie (préparation transition)
+    let token = req
+        .headers()
+        .get(header::AUTHORIZATION)
+        .and_then(|auth_header| auth_header.to_str().ok())
+        .and_then(|auth_value| auth_value.strip_prefix("Bearer "));
+        // .or_else(|| req.cookie("auth_token").map(|c| c.value())); // Extraction du cookie
 
-                        // Chercher l'ID de l'utilisateur dans la table `users`
-                        match users
-                            .filter(users::email.eq(&user_email))
-                            .select(users::id)
-                            .first::<Uuid>(conn)
-                        {
-                            Ok(user_user_id) => {
-                                // Insérer l'enregistrement du `temp` en liant l'ID de l'utilisateur
-                                let new_temp = TempRegistration {
-                                    user_id: user_user_id, // Utilisation de l'user_id de l'utilisateur authentifié
-                                    full_name: data.full_name.clone(),
-                                    address: data.address.clone(),
-                                    phone: data.phone.clone(),
-                                    email: user_email.clone(),
-                                    birth_date: data.birth_date.clone(),
-                                    driver_license: data.driver_license,
-                                    transport: data.transport.clone(),
-                                    motivation: data.motivation.clone(),
-                                    judicial_record: data.judicial_record.clone(),
-                                };
+    let token = match token {
+        Some(t) => t,
+        None => return Err(ApiError::new("Missing authentication", Some("invalid_credentials".to_string()))),
+    };
 
-                                // Insérer le `temp` dans la base de données
-                                match insert_into(temps).values(&new_temp).execute(conn) {
-                                    Ok(_) => Ok(HttpResponse::Ok().json(
-                                        "Temp enregistré, en attente de validation par l'admin",
-                                    )),
-                                    Err(err) => {
-                                        println!("Erreur insertion temp : {:?}", err);
-                                        Err(ApiError::new(
-                                            "Failed to register temp",
-                                            Some("db_update_failed".to_string()),
-                                        ))
-                                    }
-                                };
-                            }
-                            Err(_) => {
-                                Err(ApiError::new(
-                                    "Failed to register temp",
-                                    Some("invalid_credentials".to_string()),
-                                ));
-                            }
-                        }
-                    }
-                    Err(_) => Err(ApiError::new(
-                        "Failed to register temp: token invalide",
-                        Some("invalid_credentials".to_string()),
-                    )),
-                }
-            }
+    // Vérification du JWT
+    let user_email = match verify_jwt(token) {
+        Ok(token_email) => token_email,
+        Err(_) => return Err(ApiError::new("Invalid token", Some("invalid_credentials".to_string()))),
+    };
+
+    let conn = &mut pool.get().expect("Erreur connexion DB");
+
+    // Récupération de l'ID utilisateur
+    let db_user_id = match users.filter(users::email.eq(&user_email)).select(users::id).first::<Uuid>(conn) {
+        Ok(db_id) => db_id,
+        Err(_) => return Err(ApiError::new("User not found", Some("invalid_credentials".to_string()))),
+    };
+
+    // Création de l'enregistrement pour `temps` (table profile intervenant.e)
+    let new_temp = TempRegistration {
+        user_id: db_user_id,
+        full_name: data.full_name.clone(),
+        address: data.address.clone(),
+        phone: data.phone.clone(),
+        email: user_email.clone(),
+        birth_date: data.birth_date.clone(),
+        driver_license: data.driver_license,
+        transport: data.transport.clone(),
+        motivation: data.motivation.clone(),
+        judicial_record: data.judicial_record.clone(),
+    };
+
+    // Insertion dans la base de données
+    match insert_into(temps).values(&new_temp).execute(conn) {
+        Ok(_) => Ok(HttpResponse::Ok().json("Temp enregistré, en attente de validation par l'admin")),
+        Err(err) => {
+            println!("Erreur insertion temp : {:?}", err);
+            Err(ApiError::new("Failed to register temp", Some("db_insert_failed".to_string())))
         }
-    } else {
-        return Err(ApiError::new(
-            "Failed to register temp",
-            Some("invalid_credentials".to_string()),
-        ))
     }
-
 }
+
