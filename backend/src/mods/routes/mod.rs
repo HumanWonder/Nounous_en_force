@@ -5,10 +5,12 @@ pub mod verifyemail;
 pub mod profile;
 
 use actix_web::web;
+use register::{register_temp, register_user};
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(verifyemail::verify_email)
-        .service(register::register_user)
+        .service(register_user)
+        .service(register_temp)
         .service(login::login)
         .service(login::logout)
         .service(profile::get_profile);

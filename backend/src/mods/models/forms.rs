@@ -47,6 +47,7 @@ pub struct LoginUser {
 #[derive(Insertable, Serialize, Deserialize)]
 #[diesel(table_name = temps)]
 pub struct TempRegistration {
+    #[serde(skip)]
     pub user_id: Uuid,
     pub full_name: String,
     pub address: String,

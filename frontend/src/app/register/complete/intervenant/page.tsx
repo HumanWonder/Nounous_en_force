@@ -2,10 +2,12 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../../../hooks/useAuth';
 
 export default function IntervenantRegister() {
 
     const router = useRouter();
+    const { token, isAuthenticated } = useAuth();
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -15,7 +17,7 @@ export default function IntervenantRegister() {
         driver_license: false,
         transport: '',
         motivation: '',
-        judicial_record: ''
+        judicial_record: '',
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -25,18 +27,27 @@ export default function IntervenantRegister() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
+        console.log("FormData : ", formData);
+        console.log("Token : ", token);
+        if (!token || !isAuthenticated) {
+            alert("Token inexistant, connexion non authentifiée, redirection vers login");
+            // setTimeout(() => router.push("/login"), 5000); // Redirige vers la page de login si aucun token
+            return;
+        }
         try {
-            const response = await fetch("/register/temp", {
+            const response = await fetch("http://127.0.0.1:8080/register/temp", {
                 method: "POST",
+                //pour envoyer les cookies
+                // credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`  // Ajouter explicitement le token dans l'en-tête
                 },
                 body: JSON.stringify(formData),
             });
-            console.log(response.text());
+            console.log("response.text ::",response.text());
             const data = await response.json();
-            console.log(data);
+            console.log("DATA SENT : ",data);
             alert("Inscription enregistrée, en attente de validation par un administrateur.");
             // Rediriger l'utilisateur vers la page d'accueil
             router.push("/");
@@ -75,12 +86,14 @@ export default function IntervenantRegister() {
                 value={formData.birth_date}
                 onChange={handleChange}
             />
+            <br/>
             <input
                 type="checkbox"
                 name="driver_license"
                 checked={formData.driver_license}
                 onChange={() => setFormData({ ...formData, driver_license: !formData.driver_license })}
             />
+            <br/>
             <input
                 type="text"
                 name="transport"

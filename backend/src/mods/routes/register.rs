@@ -65,6 +65,7 @@ async fn register_temp(
         .and_then(|auth_header| auth_header.to_str().ok())
         .and_then(|auth_value| auth_value.strip_prefix("Bearer "));
         // .or_else(|| req.cookie("auth_token").map(|c| c.value())); // Extraction du cookie
+    println!("Token : {:?}", token);
 
     let token = match token {
         Some(t) => t,
