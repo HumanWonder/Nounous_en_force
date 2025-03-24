@@ -45,7 +45,6 @@ export default function IntervenantRegister() {
                 },
                 body: JSON.stringify(formData),
             });
-            console.log("response.text ::",response.text());
             const data = await response.json();
             console.log("DATA SENT : ",data);
             alert("Inscription enregistrée, en attente de validation par un administrateur.");
