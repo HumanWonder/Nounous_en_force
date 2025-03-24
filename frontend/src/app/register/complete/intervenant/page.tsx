@@ -11,7 +11,6 @@ export default function IntervenantRegister() {
         full_name: '',
         address: '',
         phone: '',
-        email: '',
         birth_date: '',
         driver_license: false,
         transport: '',
@@ -35,7 +34,7 @@ export default function IntervenantRegister() {
                 },
                 body: JSON.stringify(formData),
             });
-
+            console.log(response.text());
             const data = await response.json();
             console.log(data);
             alert("Inscription enregistrée, en attente de validation par un administrateur.");
@@ -69,13 +68,6 @@ export default function IntervenantRegister() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="Téléphone"
-            />
-            <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Email"
             />
             <input
                 type="date"

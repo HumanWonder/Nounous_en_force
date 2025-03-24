@@ -51,7 +51,6 @@ pub struct TempRegistration {
     pub full_name: String,
     pub address: String,
     pub phone: String,
-    pub email: String,
     pub birth_date: Option<NaiveDate>,  // Nullable si la date de naissance est optionnelle
     pub driver_license: bool,
     pub transport: String,

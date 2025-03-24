@@ -111,7 +111,6 @@ async fn register_temp(
         full_name: data.full_name.clone(),
         address: data.address.clone(),
         phone: data.phone.clone(),
-        email: user_email.clone(),
         birth_date: data.birth_date.clone(),
         driver_license: data.driver_license,
         transport: data.transport.clone(),

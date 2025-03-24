@@ -92,7 +92,6 @@ diesel::table! {
         full_name -> Text,
         address -> Text,
         phone -> Text,
-        email -> Text,
         birth_date -> Nullable<Date>,
         driver_license -> Bool,
         transport -> Text,
