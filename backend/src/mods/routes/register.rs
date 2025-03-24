@@ -79,10 +79,30 @@ async fn register_temp(
 
     let conn = &mut pool.get().expect("Erreur connexion DB");
 
-    // Récupération de l'ID utilisateur
-    let db_user_id = match users.filter(users::email.eq(&user_email)).select(users::id).first::<Uuid>(conn) {
-        Ok(db_id) => db_id,
+    // Récupération de l'ID/role de l'utilisateur
+    let (db_user_id, db_user_role): (Uuid, String) = match users.filter(users::email.eq(&user_email)).select((users::id, users::role)).first::<(Uuid, String)>(conn) {
+        Ok(db_data) => db_data,
         Err(_) => return Err(ApiError::new("User not found", Some("invalid_credentials".to_string()))),
+    };
+
+    // Vérifier si l'utilisateur est bien "pending"
+    if db_user_role != "pending" {
+        return Err(ApiError::new(
+            "User already registered with a different role",
+            Some("db_update_failed".to_string()),
+        ));
+    }
+
+    // Mise à jour du rôle en "temp"
+    match diesel::update(users.filter(users::id.eq(db_user_id)))
+        .set(users::role.eq("temp"))
+        .execute(conn)
+    {
+        Ok(_) => println!("User role updated to 'temp'"),
+        Err(err) => {
+            println!("Erreur mise à jour rôle : {:?}", err);
+            return Err(ApiError::new("Failed to update user role", Some("db_update_failed".to_string())));
+        }
     };
 
     // Création de l'enregistrement pour `temps` (table profile intervenant.e)
