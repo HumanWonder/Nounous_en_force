@@ -1,4 +1,3 @@
-// Layout avec `"use client"` pour les effets et styles
 'use client';
 
 import { useEffect } from "react";
@@ -11,20 +10,18 @@ export default function RootLayout({
 }: {
     children: React.ReactNode
 }) {
-
     const {isAuthenticated, logout} = useAuth();
     const router = useRouter();
 
-    console.log(isAuthenticated);
     useEffect(() => {
-        document.body.classList.add('bg-gray-100', 'h-screen');
+        document.body.classList.add('h-screen');
     }, []);
 
     return (
         <html lang="en">
             <body>
                 <header>
-                    <nav>
+                    <nav className="flex justify-center gap-20 items-center p-4 bg-rose-100 shadow-md">
                         <Button onClick={() => router.push("/")}>Home</Button>
                         {isAuthenticated ? (
                             <Button onClick={logout}>Logout</Button>
@@ -34,15 +31,15 @@ export default function RootLayout({
                         <Button onClick={()=> router.push("/profile")}>Profile</Button>
                     </nav>
                 </header>
-                <main className="h-screen flex items-center justify-center gap-4 bg-gray-100">
+                <main className="h-screen flex items-center justify-center gap-4 bg-gray-50">
                     <div className="w-full max-w-lg p-4">
                         {children}
                     </div>
                 </main>
-                <footer>
+                <footer className="text-center p-4 bg-rose-100">
                     <p>© 2025 Mon Site Super Cool</p>
                 </footer>
             </body>
         </html>
-    )
+    );
 }
