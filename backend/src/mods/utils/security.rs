@@ -1,12 +1,15 @@
-use actix_web::{cookie::{time::Duration, Cookie, SameSite}, HttpRequest};
+use actix_web::{
+    cookie::{time::Duration, Cookie, SameSite},
+    HttpRequest,
+};
 //Gestion hash et JWT
 use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::Utc;
+use dotenv::dotenv;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use std::env;
-use dotenv::dotenv;
+use uuid::Uuid;
 
 use crate::mods::models::apierror::ApiError;
 
@@ -17,10 +20,12 @@ const SECRET_KEY: &[u8] = b"supersecretkey";
 // Structure pour les claims du JWT
 #[derive(Serialize, Deserialize)]
 struct Claims {
+    //sub pour subject. Le renvoi principal du token
     sub: String,
     user_id: Option<String>,
     token_id: String, // Identifiant unique pour chaque token
     exp: usize,
+    role: String,
 }
 
 pub fn hash_password(password: &str) -> String {
@@ -31,7 +36,12 @@ pub fn verify_password(password: &str, hashed: &str) -> bool {
     verify(password, hashed).unwrap_or(false)
 }
 
-pub fn generate_jwt(email: &str, user_id: Option<Uuid>, duration: chrono::Duration) -> String {
+pub fn generate_jwt(
+    email: &str,
+    user_id: Option<Uuid>,
+    role: &str,
+    duration: chrono::Duration,
+) -> String {
     // Calculer l'expiration du token (par exemple ici dans 15min)
     let expiration = (Utc::now() + duration).timestamp() as usize;
 
@@ -41,6 +51,7 @@ pub fn generate_jwt(email: &str, user_id: Option<Uuid>, duration: chrono::Durati
         user_id: user_id.map(|id| id.to_string()),
         token_id: Uuid::new_v4().to_string(),
         exp: expiration,
+        role: role.to_string(),
     };
 
     encode(
@@ -51,7 +62,7 @@ pub fn generate_jwt(email: &str, user_id: Option<Uuid>, duration: chrono::Durati
     .expect("Erreur génération token")
 }
 
-pub fn verify_jwt(token: &str) -> Result<String, String> {
+pub fn verify_jwt(token: &str) -> Result<(String, String), String> {
     // let SECRET_KEY = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
     match decode::<Claims>(
@@ -59,7 +70,7 @@ pub fn verify_jwt(token: &str) -> Result<String, String> {
         &DecodingKey::from_secret(SECRET_KEY.as_ref()),
         &Validation::new(Algorithm::HS256),
     ) {
-        Ok(data) => Ok(data.claims.sub), // Retourne l'email
+        Ok(data) => Ok((data.claims.sub, data.claims.role)), // Retourne l'email et le rôle du user
         Err(_) => Err("Token invalide".to_string()),
     }
 }
@@ -70,16 +81,16 @@ pub fn create_auth_cookie(token: Option<String>) -> Cookie<'static> {
     let expiration_time = Duration::hours(2);
 
     let cookie = match token {
-        Some(token) =>{
+        Some(token) => {
             Cookie::build("auth_token", token)
-            .path("/")  //Permet au front d'accéder au cookie
-            .http_only(true)    // Empêche l'accès au token via JS (protection XSS)
-            // Doit être sécurisé en production (HTTPS)
-            // .secure(true)  //Passer à true en prod
-            // .same_site(SameSite::None)//Contre les attaques CSRF (utilisation de la session active d'un utilisateur pour qu'il fasse une requête malicieuse souvent par l'intermédiaire d'un lien)
-            .max_age(expiration_time)
-            .finish()
-        },
+                .path("/") //Permet au front d'accéder au cookie
+                .http_only(true) // Empêche l'accès au token via JS (protection XSS)
+                // Doit être sécurisé en production (HTTPS)
+                // .secure(true)  //Passer à true en prod
+                // .same_site(SameSite::None)//Contre les attaques CSRF (utilisation de la session active d'un utilisateur pour qu'il fasse une requête malicieuse souvent par l'intermédiaire d'un lien)
+                .max_age(expiration_time)
+                .finish()
+        }
 
         None => {
             // Cookie vide et expiré pour la déconnexion
@@ -91,19 +102,24 @@ pub fn create_auth_cookie(token: Option<String>) -> Cookie<'static> {
         }
     };
     cookie
-    
 }
 
 //Fonction qui check si le cookie contient toujours un token valide. Permet d'authentifier le user et permettre sa requête
-pub fn extract_token_from_cookie(req: &HttpRequest) -> Result<String, ApiError> {
+pub fn extract_token_from_cookie(req: &HttpRequest) -> Result<(String, String), ApiError> {
     if let Some(cookie) = req.cookie("auth_token") {
         let token = cookie.value().to_string();
         match verify_jwt(&token) {
-            Ok(email) => Ok(email), // Retourne l'email si le token est valide
-            Err(_) => Err(ApiError::new("Token invalide", Some("invalid_credentials".to_string()))),
+            Ok((email, role)) => Ok((email, role)), // Retourne l'email et le rôle si le token est valide
+            Err(_) => Err(ApiError::new(
+                "Token invalide",
+                Some("invalid_credentials".to_string()),
+            )),
         }
     } else {
-        Err(ApiError::new("Token manquant", Some("invalid_credentials".to_string())))
+        Err(ApiError::new(
+            "Token manquant",
+            Some("invalid_credentials".to_string()),
+        ))
     }
 }
 

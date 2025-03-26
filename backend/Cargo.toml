@@ -7,6 +7,7 @@ edition = "2021"
 #Permet connexions entre NextJS et Rust
 actix-cors = "0.7.0"
 actix-rt = "2.10.0"
+actix-service = "2.0.3"
 # Framework web
 actix-web = "4.9.0"
 # Hashage des mots de passe

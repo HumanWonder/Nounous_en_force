@@ -18,7 +18,7 @@ pub async fn verify_email(data: web::Json<HashMap<String, String>>, pool: web::D
         None => return Err(ApiError::new("Token manquant", Some("invalid_credentials".to_string()))),
     };
     match security::verify_jwt(token) {
-        Ok(email) => {
+        Ok((email, _)) => {
             let conn = &mut pool.get().expect("Erreur connexion DB");
 
             // Mise à jour de is_validated à true

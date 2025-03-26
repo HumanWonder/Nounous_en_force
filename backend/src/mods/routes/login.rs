@@ -16,8 +16,8 @@ pub async fn login(credentials: web::Json<LoginUser>, pool: web::Data<DbPool>) -
     //Sélectionne la première occurence de l'utilisateur avec l'email correspondant
     let user = match users
         .filter(email.eq(&credentials.email))
-        .select((id, hashed_password, email, is_validated))
-        .first::<(Uuid, String, String, bool)>(conn)
+        .select((id, hashed_password, email, is_validated, role))
+        .first::<(Uuid, String, String, bool, String)>(conn)
         .optional()
         .unwrap()
     {
@@ -33,7 +33,8 @@ pub async fn login(credentials: web::Json<LoginUser>, pool: web::Data<DbPool>) -
                 return Err(ApiError::without_code("Veuillez valider votre mail"));
             };
             if verify_password(&credentials.password, &user.1) {
-                let token = generate_jwt(&user.2, Some(user.0), chrono::Duration::hours(2));
+                let token =
+                    generate_jwt(&user.2, Some(user.0), &user.4, chrono::Duration::hours(2));
                 let auth_cookie = security::create_auth_cookie(Some(token.clone()));
 
                 Ok(HttpResponse::Ok()

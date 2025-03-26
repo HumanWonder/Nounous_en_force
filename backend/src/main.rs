@@ -14,7 +14,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let cors = Cors::default()  //Autorise les requêtes originant du front
             .allowed_origin(&get_front_conn())//charge l'url
-            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "PATCH"])
             .allowed_headers(vec!["Content-Type", "Authorization"])
             .supports_credentials() // Permet l'envoi des cookies
             .max_age(3600);

@@ -29,7 +29,7 @@ async fn register_user(data: web::Json<RegisterUser>, pool: web::Data<DbPool>) -
         Ok(_) => {
             println!("user registered");
             //génération token
-            let validation_token = security::generate_jwt(&data.email, None, Duration::minutes(15));
+            let validation_token = security::generate_jwt(&data.email, None, &new_user.role,Duration::minutes(15));
 
             // Envoi mail de validation
             match send_email::send_verification_email(&data.email, &validation_token) {
@@ -73,21 +73,21 @@ async fn register_temp(
     };
 
     // Vérification du JWT
-    let user_email = match verify_jwt(token) {
-        Ok(token_email) => token_email,
+    let user_data = match verify_jwt(token) {
+        Ok((token_email, token_role)) => (token_email, token_role),
         Err(_) => return Err(ApiError::new("Invalid token", Some("invalid_credentials".to_string()))),
     };
 
     let conn = &mut pool.get().expect("Erreur connexion DB");
 
     // Récupération de l'ID/role de l'utilisateur
-    let (db_user_id, db_user_role): (Uuid, String) = match users.filter(users::email.eq(&user_email)).select((users::id, users::role)).first::<(Uuid, String)>(conn) {
-        Ok(db_data) => db_data,
+    let db_user_id: Uuid = match users.filter(users::email.eq(&user_data.0)).select(users::id).first::<Uuid>(conn) {
+        Ok(db_id_data) => db_id_data,
         Err(_) => return Err(ApiError::new("User not found", Some("invalid_credentials".to_string()))),
     };
 
     // Vérifier si l'utilisateur est bien "pending"
-    if db_user_role != "pending" {
+    if user_data.1 != "pending" {
         return Err(ApiError::new(
             "User already registered with a different role",
             Some("db_update_failed".to_string()),

@@ -18,6 +18,32 @@ export default function AdminDashboard() {
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(true);
 
+        // Fonction de validation du profil
+        const handleValidate = async (userId: string) => {
+            try {
+                const response = await fetch(`http://127.0.0.1:8080/admin/validate/${userId}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                });
+    
+                const data = await response.json();
+                if (response.ok) {
+                    setMessage("Profil validé avec succès");
+                    // Recharger les utilisateurs après validation
+                    setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+                } else {
+                    setMessage(data.message || "Erreur lors de la validation du profil");
+                }
+            } catch (error) {
+                console.error("Erreur lors de la validation du profil:", error);
+                setMessage("Erreur réseau. Impossible de valider ce profil.");
+            }
+        };
+
     useEffect(() => {
         const fetchUsers = async () => {
             // Vérifier si le token est disponible et si l'utilisateur est authentifié
@@ -85,7 +111,7 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody>
                             {users.map(user => (
-                                <tr key={user.id}>
+                                <tr key={user[0]}>
                                     <td className="px-4 py-2 border">{user[1]}</td>
                                     <td className="px-4 py-2 border">{user[2]}</td>
                                     <td className="px-4 py-2 border">
@@ -95,7 +121,7 @@ export default function AdminDashboard() {
                                         {!user.is_profile_validated && (
                                             <button
                                                 className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                                                onClick={() => handleValidate(user.id)}
+                                                onClick={() => handleValidate(user[0])}
                                             >
                                                 Valider
                                             </button>
@@ -109,30 +135,4 @@ export default function AdminDashboard() {
             )}
         </div>
     );
-
-    // Fonction de validation du profil
-    const handleValidate = async (userId: string) => {
-        try {
-            const response = await fetch(`http://127.0.0.1:8080/admin/validate/${userId}`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-            });
-
-            const data = await response.json();
-            if (response.ok) {
-                setMessage("Profil validé avec succès");
-                // Recharger les utilisateurs après validation
-                setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-            } else {
-                setMessage(data.message || "Erreur lors de la validation du profil");
-            }
-        } catch (error) {
-            console.error("Erreur lors de la validation du profil:", error);
-            setMessage("Erreur réseau. Impossible de valider ce profil.");
-        }
-    };
 }
