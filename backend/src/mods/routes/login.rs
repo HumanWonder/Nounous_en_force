@@ -38,7 +38,7 @@ pub async fn login(credentials: web::Json<LoginUser>, pool: web::Data<DbPool>) -
 
                 Ok(HttpResponse::Ok()
                     .cookie(auth_cookie)
-                    //Envoi du token uniquement en local => Production : juste message
+                    //Envoi du token uniquement en local => Production : juste message. Le cookie est géré dans le back
                     .json(serde_json::json!({
                         "message": "Connexion réussie",
                         "token": token.clone()

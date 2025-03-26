@@ -19,7 +19,7 @@ export default function Profile() {
 
     useEffect(() => {
         const fetchUserProfile = async () => {
-            // // Récupérer le token depuis les cookies (remarque: ajuster selon ton outil de gestion de cookies)
+            // // Récupérer le token depuis les cookies (ajuster selon outil de gestion de cookies)
             console.log("Token in profile : ", token)
             if (!token || !isAuthenticated) {
                 setMessage("Token inexistant, connexion non authentifiée");
@@ -79,6 +79,11 @@ export default function Profile() {
                             Compléter mon inscription
                         </button>
                     )}
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                        onClick={() => router.push("/admin")}>
+                        Page Admin
+                    </button>
+
 
                     {/* Affiche d'autres données utilisateur ici */}
                 </div>

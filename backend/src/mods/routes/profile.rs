@@ -5,7 +5,8 @@ use crate::mods::utils::security;
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 use diesel::prelude::*;
 use uuid::Uuid;
-
+// NOTE ! 
+// Créer user avec rôle admin pour voir toutes les demandes et pouvoir en valider ou refuser
 #[get("/profile")]
 pub async fn get_profile(req: HttpRequest, pool: web::Data<DbPool>) -> impl Responder {
     println!("Getting profile info....");
@@ -15,7 +16,7 @@ pub async fn get_profile(req: HttpRequest, pool: web::Data<DbPool>) -> impl Resp
             let conn = &mut pool
                 .get()
                 .expect("Erreur de connexion à la base de données");
-            println!("Requête de profil pour {}", mail);
+            
             // Chercher les informations de l'utilisateur dans la base de données
             let user_info = match users
                 .filter(email.eq(mail)) // Filtrer par email
