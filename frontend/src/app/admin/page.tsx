@@ -110,7 +110,10 @@ export default function AdminDashboard() {
                             </tr>
                         </thead>
                         <tbody>
-                            {users.map(user => (
+                            {users
+                            .filter(user => user[2] !== "pending")  //Exclut les utilisateurs en "pending" (formulaire non rempli)
+                            .map(user => (
+                                
                                 <tr key={user[0]}>
                                     <td className="px-4 py-2 border">{user[1]}</td>
                                     <td className="px-4 py-2 border">{user[2]}</td>

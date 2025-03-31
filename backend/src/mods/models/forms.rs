@@ -33,17 +33,6 @@ pub struct LoginUser {
 //     pub address: Option<String>,
 // }
 
-// id -> Uuid,
-//         user_id -> Uuid,
-//         full_name -> Text,
-//         address -> Text,
-//         phone -> Text,
-//         email -> Text,
-//         birth_date -> Nullable<Date>,
-//         driver_license -> Bool,
-//         transport -> Text,
-//         motivation -> Nullable<Text>,
-//         judicial_record -> Text,
 #[derive(Insertable, Serialize, Deserialize)]
 #[diesel(table_name = temps)]
 pub struct TempRegistration {

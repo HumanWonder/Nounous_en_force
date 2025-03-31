@@ -15,6 +15,7 @@ pub struct User {
     pub is_profile_validated: bool, // Validation par admin
     pub role: String,
     pub created_at: Option<chrono::NaiveDateTime>,
+    pub rejection_reason: Option<String>,
 }
 
 #[derive(Insertable)]
