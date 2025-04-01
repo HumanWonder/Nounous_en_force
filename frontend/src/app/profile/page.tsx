@@ -8,6 +8,18 @@ import { useAuth } from "../hooks/useAuth";
 type UserData = {
     email: string;
     role: string;
+    temp?: TempData;    //Champs optionnels selon rôle
+};
+
+type TempData = {
+    full_name: string;
+    address: string;
+    phone: string;
+    birth_date?: string;
+    driver_license: boolean;
+    transport: string;
+    motivation?: string;
+    judicial_record: string;
 };
 
 export default function Profile() {
@@ -37,10 +49,14 @@ export default function Profile() {
                 });
 
                 const data = await response.json();
-                console.log(data);
+                console.log("data :",data);
 
                 if (response.ok) {
-                    setUserData(data);
+                    setUserData({
+                        email: data.user.email,
+                        role: data.user.role,
+                        temp: data.temp ?? undefined, // Ajoute `temp` s'il existe
+                    });
                 } else {
                     setMessage(data.message || "Erreur de récupération des données. Veuillez vous reconnecter.");
 
@@ -61,6 +77,11 @@ export default function Profile() {
         }
     }, [isAuthenticated, token, router]);
 
+    useEffect(() => {
+        console.log("USERDATA mis à jour :", userData);
+    }, [userData]);
+    
+
     if (loading) {
         return <p>Chargement des données...</p>; // Affiche un message de chargement
     }
@@ -71,24 +92,41 @@ export default function Profile() {
             {userData ? (
                 <div>
                     <h2>Profil de l'utilisateur</h2>
-                    <p>Email : {userData[1]}</p>
-                    <p>{userData[2]}</p>
-                    {userData[2] === "pending" && (
+                    <br />
+                    <p>Email : {userData.email}</p>
+                    <p>Rôle : {userData.role}</p>
+                    <br/>
+                    {userData.role === "pending" && (
                         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
                             onClick={() => router.push("register/complete/")}>
                             Compléter mon inscription
                         </button>
                     )}
-                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
-                        onClick={() => router.push("/admin")}>
-                        Page Admin
-                    </button>
 
-
+                    {userData.role === "admin" && (
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                            onClick={() => router.push("/admin")}>
+                            Page Admin
+                        </button>
+                    )}
                     {/* Affiche d'autres données utilisateur ici */}
+                    {userData.role === "temp" && userData.temp ? (
+                        <>
+                            <h3>Informations intérimaires</h3>
+                            <br/>
+                            <p>Nom complet: {userData.temp.full_name}</p>
+                            <p>Adresse: {userData.temp.address}</p>
+                            <p>Téléphone: {userData.temp.phone}</p>
+                            {userData.temp.birth_date && <p>Date de naissance: {userData.temp.birth_date}</p>}
+                            <p>Permis de conduire: {userData.temp.driver_license ? "Oui" : "Non"}</p>
+                            <p>Moyen de transport: {userData.temp.transport}</p>
+                            {userData.temp.motivation && <p>Motivation: {userData.temp.motivation}</p>}
+                            <p>Casier judiciaire: {userData.temp.judicial_record}</p>
+                        </>
+                    ) : null }
                 </div>
             ) : (
-                <p>Profil non trouvé</p>
+                <p>Veuillez vous connecter</p>
             )}
         </div>
     );

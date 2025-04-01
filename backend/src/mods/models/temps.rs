@@ -3,9 +3,9 @@ use diesel::{Queryable, Selectable};
 use uuid::Uuid;
 
 use crate::mods::models::user::User;
-use crate::mods::utils::schema::temps::dsl::*;
+use crate::mods::utils::schema::temps;
 
-#[derive(Queryable, Selectable, Serialize, Deserialize)]
+#[derive(Queryable, Selectable, Serialize, Deserialize, Default)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Temp {
     pub id: Uuid,
