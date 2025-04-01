@@ -49,13 +49,16 @@ export default function Profile() {
                 });
 
                 const data = await response.json();
-                console.log("data :",data);
+                console.log("data :", data);
 
                 if (response.ok) {
+                    // Vérifie si les données ont un champ "user" (cas des utilisateurs temp)
+                    const userInfo = data.user ?? data; // Si data.user existe, on l'utilise, sinon on prend data directement
+
                     setUserData({
-                        email: data.user.email,
-                        role: data.user.role,
-                        temp: data.temp ?? undefined, // Ajoute `temp` s'il existe
+                        email: userInfo.email,
+                        role: userInfo.role,
+                        temp: userInfo.role === "temp" ? data.temp : undefined, // Ajoute `temp` uniquement pour `temp`
                     });
                 } else {
                     setMessage(data.message || "Erreur de récupération des données. Veuillez vous reconnecter.");
@@ -80,7 +83,7 @@ export default function Profile() {
     useEffect(() => {
         console.log("USERDATA mis à jour :", userData);
     }, [userData]);
-    
+
 
     if (loading) {
         return <p>Chargement des données...</p>; // Affiche un message de chargement
@@ -95,7 +98,7 @@ export default function Profile() {
                     <br />
                     <p>Email : {userData.email}</p>
                     <p>Rôle : {userData.role}</p>
-                    <br/>
+                    <br />
                     {userData.role === "pending" && (
                         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
                             onClick={() => router.push("register/complete/")}>
@@ -113,7 +116,7 @@ export default function Profile() {
                     {userData.role === "temp" && userData.temp ? (
                         <>
                             <h3>Informations intérimaires</h3>
-                            <br/>
+                            <br />
                             <p>Nom complet: {userData.temp.full_name}</p>
                             <p>Adresse: {userData.temp.address}</p>
                             <p>Téléphone: {userData.temp.phone}</p>
@@ -123,7 +126,7 @@ export default function Profile() {
                             {userData.temp.motivation && <p>Motivation: {userData.temp.motivation}</p>}
                             <p>Casier judiciaire: {userData.temp.judicial_record}</p>
                         </>
-                    ) : null }
+                    ) : null}
                 </div>
             ) : (
                 <p>Veuillez vous connecter</p>
