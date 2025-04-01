@@ -61,7 +61,7 @@ pub async fn get_profile(req: HttpRequest, pool: web::Data<DbPool>) -> impl Resp
                         }
                     };
 
-                    let temp_profile = TempProfile { user: user_info, temp: temp_info.unwrap() };
+                    let temp_profile = TempProfile { user: user_info, temp: temp_info.unwrap(), availabilities: Vec::new(), conditions: Vec::new(), diplomas: Vec::new(), experiences: Vec::new() };
                     Ok(HttpResponse::Ok().json(temp_profile))
                 },
                 _ => return Ok(HttpResponse::Ok().json(user_info))
