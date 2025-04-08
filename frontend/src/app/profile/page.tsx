@@ -3,29 +3,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 
-
-// Déclare un type pour les données de l'utilisateur, sinon TypeScript panique en voyant null
-type UserData = {
-    email: string;
-    role: string;
-    temp?: TempData;    //Champs optionnels selon rôle
-};
-
-type TempData = {
-    full_name: string;
-    address: string;
-    phone: string;
-    birth_date?: string;
-    driver_license: boolean;
-    transport: string;
-    motivation?: string;
-    judicial_record: string;
-};
+import type { FullProfileData } from "../types/user";
 
 export default function Profile() {
     const router = useRouter();
     const { token, isAuthenticated } = useAuth();
-    const [userData, setUserData] = useState<UserData | null>(null);
+    const [profileData, setProfileData] = useState<FullProfileData | null>(null);
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(true); // Ajout d'un état de chargement
 
@@ -38,6 +21,8 @@ export default function Profile() {
                 // setTimeout(() => router.push("/login"), 5000); // Redirige vers la page de login si aucun token
                 return;
             }
+            console.log("Token:", token);
+            console.log("isAuthenticated:", isAuthenticated);
 
             try {
                 const response = await fetch("http://127.0.0.1:8080/profile", {
@@ -52,13 +37,15 @@ export default function Profile() {
                 console.log("data :", data);
 
                 if (response.ok) {
-                    // Vérifie si les données ont un champ "user" (cas des utilisateurs temp)
-                    const userInfo = data.user ?? data; // Si data.user existe, on l'utilise, sinon on prend data directement
 
-                    setUserData({
-                        email: userInfo.email,
-                        role: userInfo.role,
-                        temp: userInfo.role === "temp" ? data.temp : undefined, // Ajoute `temp` uniquement pour `temp`
+                    setProfileData({
+                        user: {
+                            email: data.email,
+                            role: data.role,
+
+                        },
+                        ...(data.role === "temp" && data.temp && { temp_data: data.temp }),
+                        ...(data.role === "owner" && data.owner && { owner_data: data.owner }),
                     });
                 } else {
                     setMessage(data.message || "Erreur de récupération des données. Veuillez vous reconnecter.");
@@ -81,55 +68,94 @@ export default function Profile() {
     }, [isAuthenticated, token, router]);
 
     useEffect(() => {
-        console.log("USERDATA mis à jour :", userData);
-    }, [userData]);
+        console.log("USERDATA mis à jour :", profileData);
+    }, [profileData]);
 
-
-    if (loading) {
-        return <p>Chargement des données...</p>; // Affiche un message de chargement
-    }
 
     return (
         <div>
             {message && <p>{message}</p>}
-            {userData ? (
+            {profileData ? (
                 <div>
                     <h2>Profil de l'utilisateur</h2>
                     <br />
-                    <p>Email : {userData.email}</p>
-                    <p>Rôle : {userData.role}</p>
+                    <p>Email : {profileData.user.email}</p>
+                    <p>Rôle : {profileData.user.role}</p>
                     <br />
-                    {userData.role === "pending" && (
+                    {profileData.user.role === "pending" && (
                         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
                             onClick={() => router.push("register/complete/")}>
                             Compléter mon inscription
                         </button>
                     )}
 
-                    {userData.role === "admin" && (
+                    {profileData.user.role === "admin" && (
                         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
                             onClick={() => router.push("/admin")}>
                             Page Admin
                         </button>
                     )}
                     {/* Affiche d'autres données utilisateur ici */}
-                    {userData.role === "temp" && userData.temp ? (
+                    {profileData.user.role === "temp" && profileData.temp_data ? (
                         <>
                             <h3>Informations intérimaires</h3>
                             <br />
-                            <p>Nom complet: {userData.temp.full_name}</p>
-                            <p>Adresse: {userData.temp.address}</p>
-                            <p>Téléphone: {userData.temp.phone}</p>
-                            {userData.temp.birth_date && <p>Date de naissance: {userData.temp.birth_date}</p>}
-                            <p>Permis de conduire: {userData.temp.driver_license ? "Oui" : "Non"}</p>
-                            <p>Moyen de transport: {userData.temp.transport}</p>
-                            {userData.temp.motivation && <p>Motivation: {userData.temp.motivation}</p>}
-                            <p>Casier judiciaire: {userData.temp.judicial_record}</p>
+                            <p>Nom complet: {profileData.temp_data?.temp_info.full_name}</p>
+                            <p>Adresse: {profileData.temp_data?.temp_info.address}</p>
+                            <p>Téléphone: {profileData.temp_data?.temp_info.phone}</p>
+                            {profileData.temp_data?.temp_info.birth_date && <p>Date de naissance: {profileData.temp_data?.temp_info.birth_date}</p>}
+                            <p>Permis de conduire: {profileData.temp_data?.temp_info.driver_license ? "Oui" : "Non"}</p>
+                            <p>Moyen de transport: {profileData.temp_data?.temp_info.transport}</p>
+                            {profileData.temp_data?.temp_info.motivation && <p>Motivation: {profileData.temp_data?.temp_info.motivation}</p>}
+                            <p>Casier judiciaire: {profileData.temp_data?.temp_info.judicial_record}</p>
+                            {/* Disponibilités */}
+                            <h4 className="text-lg font-medium mt-4">Disponibilités</h4>
+                            {profileData.temp_data.availabilities.map((a, index) => (
+
+                                <div key={index} className="ml-4 mb-2">
+                                    <p>Périodes disponibles: {a.available_periods}</p>
+                                    <p>Horaires: {a.work_hours}</p>
+                                    <p>Zones préférées: {a.preferred_locations}</p>
+                                    <p>Temps de trajet max: {a.max_travel_time}</p>
+                                </div>
+                            ))}
+
+                            {/* Conditions de travail */}
+                            <h4 className="text-lg font-medium mt-4">Conditions de travail</h4>
+                            {profileData.temp_data?.conditions?.map((c, index) => (
+                                <div key={index} className="ml-4 mb-2">
+                                    <p>Taux horaire: {c.hourly_rate}€</p>
+                                    <p>Types de contrat: {c.contract_types}</p>
+                                    <p>Auto-entrepreneur: {c.self_employment ? "Oui" : "Non"}</p>
+                                </div>
+                            ))}
+
+                            {/* Diplômes */}
+                            <h4 className="text-lg font-medium mt-4">Diplômes</h4>
+                            {profileData.temp_data?.documents?.map((d, index) => (
+                                <div key={index} className="ml-4 mb-2">
+                                    <p>Diplôme: {d.diploma_name}</p>
+                                    <p>Autres certifications: {d.other_certifications}</p>
+                                    <p>Année d'obtention: {d.year_obtained}</p>
+                                    <p>Établissement: {d.institution}</p>
+                                </div>
+                            ))}
+
+                            {/* Expériences */}
+                            <h4 className="text-lg font-medium mt-4">Expériences professionnelles</h4>
+                            {profileData.temp_data?.experiences?.map((e, index) => (
+                                <div key={index} className="ml-4 mb-2">
+                                    <p>Total d'expérience: {e.total_experience}</p>
+                                    <p>Postes précédents: {e.previous_jobs}</p>
+                                    <p>Types de structures: {e.structure_types}</p>
+                                    <p>Tâches réalisées: {e.tasks}</p>
+                                </div>
+                            ))}
                         </>
                     ) : null}
                 </div>
             ) : (
-                <p>Veuillez vous connecter</p>
+                <p>Chargement...</p>
             )}
         </div>
     );

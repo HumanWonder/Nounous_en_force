@@ -16,7 +16,7 @@ pub struct RegisterUser {
 pub struct TempRequest {
     pub temp_info: TempRegistration,  
     pub availabilities: Vec<TempAvailabilityForm>,  
-    pub work_hours: Vec<TempConditionForm>,  
+    pub conditions: Vec<TempConditionForm>,  
     pub documents: Vec<TempDiplomaForm>,  
     pub experiences: Vec<TempExperienceForm>,  
 }

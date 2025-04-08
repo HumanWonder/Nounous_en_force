@@ -152,7 +152,7 @@ async fn register_temp(
     }
 
     // Insertion des horaires de travail
-    for work_data in &data.work_hours {
+    for work_data in &data.conditions{
         let new_condition = TempConditionForm {
             temp_id: db_user_id,
             hourly_rate: work_data.hourly_rate.clone(),
@@ -212,7 +212,7 @@ async fn register_temp(
 
         // Insertion des conditions de travail
         let condition_inserts: Vec<_> = data
-            .work_hours
+            .conditions
             .iter()
             .map(|work_data| TempConditionForm {
                 temp_id: inserted_temp_id,

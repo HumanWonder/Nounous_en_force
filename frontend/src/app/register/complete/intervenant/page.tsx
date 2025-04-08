@@ -1,14 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../hooks/useAuth";
+
+import type { IntervenantFormData } from "../../../types/user";
 
 export default function IntervenantRegister() {
     const router = useRouter();
     const { token, isAuthenticated } = useAuth();
     // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<IntervenantFormData>({
         temp_info: {
             full_name: "",
             address: "",
@@ -19,15 +21,33 @@ export default function IntervenantRegister() {
             motivation: "",
             judicial_record: "",
             availabilities: [{ available_periods: "", work_hours: "", preferred_locations: "", max_travel_time: "" }],
-            conditions: [{ hourly_rate: "", contract_types: "", self_employment: null }],
-            diplomas: [{ diploma_name: "", other_certifications: "", year_obtained: "", institution: "" }],
+            conditions: [{ hourly_rate: "", contract_types: "", self_employment: "" }],
+            documents: [{ diploma_name: "", other_certifications: "", year_obtained: "", institution: "" }],
             experiences: [{ total_experience: "", previous_jobs: "", structure_types: "", tasks: "" }]
-        }
+        },
     });
 
     // const toggleDropdown = () => {
     //     setIsDropdownOpen(!isDropdownOpen);
     // };
+
+
+    // Charge les données du formulaire si existantes dans localStorage
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedFormData = localStorage.getItem("formData");
+            if (storedFormData) {
+                setFormData(JSON.parse(storedFormData));
+            }
+        }
+    }, []);
+
+    //Sauvegarde des données à chaque changement
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            localStorage.setItem("formData", JSON.stringify(formData));
+        }
+    }, [formData]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -36,12 +56,13 @@ export default function IntervenantRegister() {
             temp_info: {
                 ...prev.temp_info,
                 [name]: type === "checkbox" ? checked : value,
-            },
+            }
         }));
     };
 
     const handleArrayChange = (index, field, value, arrayName) => {
         setFormData((prev) => {
+            console.log("prev[arrayName] :", prev[arrayName]);
             const updatedArray = [...prev.temp_info[arrayName]];
             updatedArray[index][field] = value;
             return {
@@ -70,20 +91,44 @@ export default function IntervenantRegister() {
             alert("Token inexistant, connexion non authentifiée, redirection vers login");
             return;
         }
+        //Data formattée pour correspondre exactement à la struct attendue dans le back-end
+        const preparedData = {
+            temp_info: {
+                full_name: formData.temp_info.full_name,
+                address: formData.temp_info.address,
+                phone: formData.temp_info.phone,
+                birth_date: formData.temp_info.birth_date || null,
+                driver_license: formData.temp_info.driver_license,
+                transport: formData.temp_info.transport,
+                motivation: formData.temp_info.motivation || null,
+                judicial_record: formData.temp_info.judicial_record,
+            },
+            availabilities: formData.temp_info.availabilities,
+            conditions: formData.temp_info.conditions,
+            documents: formData.temp_info.documents.map((doc) => ({
+                ...doc,
+                year_obtained: parseInt(doc.year_obtained, 10)
+            })),
+            experiences: formData.temp_info.experiences
+        };
+
+
+        console.log("Prepared Data ready to be sent to server : \n", preparedData);
         try {
-            const formDataToSend = JSON.stringify(formData);
-            console.log(formDataToSend);
+
             const response = await fetch("http://127.0.0.1:8080/register/temp", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`,
                 },
-                body: formDataToSend,
+                body: JSON.stringify(preparedData),
             });
-            const data = await response.json();
-            alert("Inscription enregistrée, en attente de validation par un administrateur.");
-            router.push("/");
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText);
+            }
+            router.push("/profile");
         } catch (error) {
             console.error("Erreur lors de l'envoi du formulaire :", error);
         }
@@ -112,7 +157,7 @@ export default function IntervenantRegister() {
                 <div className="flex flex-col gap-4">
                     {/* Disponibilités dynamiques */}
                     <h3 className="text-lg font-semibold">Disponibilités</h3>
-                    {formData.temp_info.availabilities.map((availability, index) => (
+                    {(formData.temp_info.availabilities || []).map((availability, index) => (
                         <div key={index} className="border p-2 rounded">
                             <input className="input-field border p-2" type="text" value={availability.available_periods} onChange={(e) => handleArrayChange(index, "available_periods", e.target.value, "availabilities")} placeholder="Périodes disponibles (ex: Lundi-Vendredi)" />
                             <input className="input-field border p-2" type="text" value={availability.work_hours} onChange={(e) => handleArrayChange(index, "work_hours", e.target.value, "availabilities")} placeholder="Horaires disponibles (ex: 9h-18h)" />
@@ -126,7 +171,7 @@ export default function IntervenantRegister() {
 
                     {/* Conditions de travail souhaitées */}
                     <h3 className="text-lg font-semibold">Conditions de travail</h3>
-                    {formData.temp_info.conditions.map((conditions, index) => (
+                    {(formData.temp_info.conditions || []).map((conditions, index) => (
                         <div key={index} className="border p-2 rounded">
                             <input className="input-field border p-2" type="text" value={conditions.contract_types} onChange={(e) => handleArrayChange(index, "contract_types", e.target.value, "conditions")} placeholder="Type de contrat souhaité" />
                             <input className="input-field border p-2" type="text" value={conditions.hourly_rate} onChange={(e) => handleArrayChange(index, "hourly_rate", e.target.value, "conditions")} placeholder="Horaires de travail souhaités (ex: 9h-18h)" />
@@ -140,7 +185,7 @@ export default function IntervenantRegister() {
 
                     {/* Expériences dynamiques */}
                     <h3 className="text-lg font-semibold">Expériences</h3>
-                    {formData.temp_info.experiences.map((experience, index) => (
+                    {(formData.temp_info.experiences || []).map((experience, index) => (
                         <div key={index} className="border p-2 rounded">
                             <input className="input-field border p-2" type="text" value={experience.total_experience} onChange={(e) => handleArrayChange(index, "total_experience", e.target.value, "experiences")} placeholder="Expérience totale" />
                             <input className="input-field border p-2" type="text" value={experience.previous_jobs} onChange={(e) => handleArrayChange(index, "previous_jobs", e.target.value, "experiences")} placeholder="Précédents emplois" />
@@ -154,15 +199,15 @@ export default function IntervenantRegister() {
 
                     {/* Diplômes dynamiques */}
                     <h3 className="text-lg font-semibold">Diplômes</h3>
-                    {formData.temp_info.diplomas.map((diploma, index) => (
+                    {(formData.temp_info.documents || []).map((doc, index) => (
                         <div key={index} className="border p-2 rounded">
-                            <input className="input-field border p-2" type="text" value={diploma.diploma_name} onChange={(e) => handleArrayChange(index, "diploma_name", e.target.value, "diplomas")} placeholder="Nom du diplôme" />
-                            <input className="input-field border p-2" type="text" value={diploma.other_certifications} onChange={(e) => handleArrayChange(index, "other_certifications", e.target.value, "diplomas")} placeholder="Autres certifications" />
-                            <input className="input-field border p-2" type="number" value={diploma.year_obtained} onChange={(e) => handleArrayChange(index, "year_obtained", e.target.value, "diplomas")} placeholder="Année d'obtention" />
-                            <input className="input-field border p-2" type="text" value={diploma.institution} onChange={(e) => handleArrayChange(index, "institution", e.target.value, "diplomas")} placeholder="Institution" />
+                            <input className="input-field border p-2" type="text" value={doc.diploma_name} onChange={(e) => handleArrayChange(index, "diploma_name", e.target.value, "documents")} placeholder="Nom du diplôme" />
+                            <input className="input-field border p-2" type="text" value={doc.other_certifications} onChange={(e) => handleArrayChange(index, "other_certifications", e.target.value, "documents")} placeholder="Autres certifications" />
+                            <input className="input-field border p-2" type="number" value={doc.year_obtained} onChange={(e) => handleArrayChange(index, "year_obtained", e.target.value, "documents")} placeholder="Année d'obtention" />
+                            <input className="input-field border p-2" type="text" value={doc.institution} onChange={(e) => handleArrayChange(index, "institution", e.target.value, "documents")} placeholder="Institution" />
                         </div>
                     ))}
-                    <button type="button" className="btn-secondary" onClick={() => addArrayField("diplomas", { diploma_name: "", other_certifications: "", year_obtained: "", institution: "" })}>
+                    <button type="button" className="btn-secondary" onClick={() => addArrayField("documents", { diploma_name: "", other_certifications: "", year_obtained: "", institution: "" })}>
                         Ajouter un diplôme
                     </button>
                 </div>
