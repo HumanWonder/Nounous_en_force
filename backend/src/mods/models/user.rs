@@ -5,6 +5,11 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::mods::models::{
+    creches::OwnerProfile,
+    temps::TempProfile,
+};
+
 #[derive(Queryable, Selectable, Serialize, Deserialize)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {
@@ -24,6 +29,22 @@ pub struct NewUser {
     pub email: String,
     pub hashed_password: String,
     pub role: String,
-    pub is_validated: bool, //Validation email
+    pub is_validated: bool,         //Validation email
     pub is_profile_validated: bool, // Validation par admin
+}
+
+#[derive(Serialize)]
+#[serde(tag = "role_data", rename_all = "snake_case")]
+pub enum FullProfileData {
+    Temp {
+        user: User,
+        temp: TempProfile
+    },
+    Owner {
+        user: User,
+        owner_info: OwnerProfile,
+    },
+    Basic {
+        user: User,
+    },
 }

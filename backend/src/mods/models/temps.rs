@@ -21,8 +21,8 @@ pub struct Temp {
     pub judicial_record: String,
 }
 
-// ✅ Disponibilités
-#[derive(Queryable, Serialize, Deserialize, Selectable)]
+// Disponibilités
+#[derive(Queryable, Serialize, Deserialize, Selectable, Debug)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(belongs_to(Temp))]
 pub struct TempAvailabilitie {
@@ -34,8 +34,8 @@ pub struct TempAvailabilitie {
     pub max_travel_time: String,
 }
 
-// ✅ Conditions de travail
-#[derive(Queryable, Serialize, Deserialize, Selectable)]
+// Conditions de travail
+#[derive(Queryable, Serialize, Deserialize, Selectable, Debug)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(belongs_to(Temp))]
 pub struct TempCondition {
@@ -46,8 +46,8 @@ pub struct TempCondition {
     pub self_employment: bool,
 }
 
-// ✅ Diplômes et certifications
-#[derive(Queryable, Serialize, Deserialize, Selectable)]
+// Diplômes et certifications
+#[derive(Queryable, Serialize, Deserialize, Selectable, Debug)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(belongs_to(Temp))]
 pub struct TempDiploma {
@@ -59,8 +59,8 @@ pub struct TempDiploma {
     pub institution: String,
 }
 
-// ✅ Expériences professionnelles
-#[derive(Queryable, Serialize, Deserialize, Selectable)]
+// Expériences professionnelles
+#[derive(Queryable, Serialize, Deserialize, Selectable, Debug)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(belongs_to(Temp))]
 pub struct TempExperience {
@@ -72,10 +72,9 @@ pub struct TempExperience {
     pub tasks: String,
 }
 
-// ✅ Struct complète pour renvoyer le profil d’un intérimaire
+// Struct complète pour renvoyer le profil d’un intérimaire
 #[derive(Serialize, Deserialize)]
 pub struct TempProfile {
-    pub user: User,
     pub temp: Temp,
     pub availabilities: Vec<TempAvailabilitie>,
     pub conditions: Vec<TempCondition>,

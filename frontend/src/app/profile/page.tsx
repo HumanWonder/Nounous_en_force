@@ -35,18 +35,25 @@ export default function Profile() {
 
                 const data = await response.json();
                 console.log("data :", data);
+                // setProfileData(data);
 
                 if (response.ok) {
 
                     setProfileData({
-                        user: {
-                            email: data.email,
-                            role: data.role,
-
-                        },
-                        ...(data.role === "temp" && data.temp && { temp_data: data.temp }),
-                        ...(data.role === "owner" && data.owner && { owner_data: data.owner }),
+                        user: data.user,
+                        temp_data: data.user.role === "temp" ? {
+                            temp_info: data.temp.temp,
+                            availabilities: data.temp.availabilities,
+                            documents: data.temp.diplomas,
+                            experiences: data.temp.experiences,
+                            conditions: data.temp.conditions,
+                        } : undefined,
+                        owner_data: data.user.role === "owner" ? {
+                            owner: data.owner,
+                            creches: [],
+                        } : undefined,
                     });
+
                 } else {
                     setMessage(data.message || "Erreur de récupération des données. Veuillez vous reconnecter.");
 
@@ -68,7 +75,7 @@ export default function Profile() {
     }, [isAuthenticated, token, router]);
 
     useEffect(() => {
-        console.log("USERDATA mis à jour :", profileData);
+        console.log("profileData :", profileData);
     }, [profileData]);
 
 
@@ -100,7 +107,7 @@ export default function Profile() {
                         <>
                             <h3>Informations intérimaires</h3>
                             <br />
-                            <p>Nom complet: {profileData.temp_data?.temp_info.full_name}</p>
+                            <p>Nom complet: {profileData.temp_data.temp_info.full_name}</p>
                             <p>Adresse: {profileData.temp_data?.temp_info.address}</p>
                             <p>Téléphone: {profileData.temp_data?.temp_info.phone}</p>
                             {profileData.temp_data?.temp_info.birth_date && <p>Date de naissance: {profileData.temp_data?.temp_info.birth_date}</p>}
@@ -117,12 +124,13 @@ export default function Profile() {
                                     <p>Horaires: {a.work_hours}</p>
                                     <p>Zones préférées: {a.preferred_locations}</p>
                                     <p>Temps de trajet max: {a.max_travel_time}</p>
+                                    <p>---------------------------------------------</p>
                                 </div>
                             ))}
 
                             {/* Conditions de travail */}
                             <h4 className="text-lg font-medium mt-4">Conditions de travail</h4>
-                            {profileData.temp_data?.conditions?.map((c, index) => (
+                            {profileData.temp_data.conditions?.map((c, index) => (
                                 <div key={index} className="ml-4 mb-2">
                                     <p>Taux horaire: {c.hourly_rate}€</p>
                                     <p>Types de contrat: {c.contract_types}</p>
