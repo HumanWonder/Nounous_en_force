@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::mods::models::{
-    creches::OwnerProfile,
+    nurseries::OwnerProfile,
     temps::TempProfile,
 };
 
