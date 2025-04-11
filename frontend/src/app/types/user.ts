@@ -20,24 +20,21 @@ export interface UserData {
 export interface TempFullProfile {
     temp_info: TempData;
     availabilities: Availability[];
-    documents: Diploma[];
-    experiences: Experience[];
     conditions: WorkCondition[];
+    diplomas: Diploma[];
+    experiences: Experience[];
+    skills: Skill[];
+    documents: Document[];
 }
 
 export interface TempData {
-    full_name: string;
+    first_name: string,
+    last_name: string,
     address: string;
     phone: string;
     birth_date: string;
     driver_license: boolean;
-    transport: string;
-    motivation: string;
-    judicial_record: string;
-    availabilities: Availability[];
-    conditions: WorkCondition[];
-    documents: Diploma[];
-    experiences: Experience[];
+    transport_modes: string;
 }
 
 export interface Availability {
@@ -67,9 +64,30 @@ export interface Experience {
     tasks: string;
 }
 
+export interface Skill {
+    languages: string,
+    pedagogies: string,
+    special_skills: string,
+    special_needs_handling: string,
+}
+
+export interface Document {
+    motivation_letter: string,
+    professional_refs: string,
+    required_docs: string,
+    criminal_record: string,
+    diplomas: string,
+}
+
 //type spécifique pour le formulaire d'inscription
 export interface IntervenantFormData {
     temp_info: TempData;
+    availabilities: Availability[];
+    conditions: WorkCondition[];
+    diplomas: Diploma[];
+    documents: Document[];
+    experiences: Experience[];
+    skills: Skill[];
 }
 
 // ---------- OWNER PROFILE STRUCTURES ----------

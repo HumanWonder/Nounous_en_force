@@ -3,7 +3,10 @@ use crate::mods::models::apierror::ApiError;
 
 //import des structures pour le profil
 use crate::mods::models::{
-    temps::{TempProfile, Temp, TempAvailabilitie, TempCondition, TempDiploma, TempExperience},
+    temps::{
+        Temp, TempAvailabilitie, TempCondition, TempDiploma, TempDocument, TempExperience,
+        TempProfile, TempSkill,
+    },
     user::{FullProfileData, User},
 };
 
@@ -12,7 +15,9 @@ use crate::mods::utils::schema::{
     temp_availabilities::dsl::{temp_availabilities, temp_id as dispo_temp_id},
     temp_conditions::dsl::{temp_conditions, temp_id as cond_temp_id},
     temp_diplomas::dsl::{temp_diplomas, temp_id as diplo_temp_id},
+    temp_documents::dsl::{temp_documents, temp_id as doc_temp_id},
     temp_experiences::dsl::{temp_experiences, temp_id as exp_temp_id},
+    temp_skills::dsl::{temp_id as skill_temp_id, temp_skills},
     temps::dsl::{temps, user_id as temp_user_id},
     users::dsl::{email, users},
     // creche_responsables::dsl::{creche_responsables, id as owner_id},
@@ -67,22 +72,62 @@ pub async fn get_profile(req: HttpRequest, pool: web::Data<DbPool>) -> impl Resp
                     let availabilities_list = temp_availabilities
                         .filter(dispo_temp_id.eq(temp_info.id))
                         .load::<TempAvailabilitie>(conn)
-                        .map_err(|e| ApiError::new("Erreur lors du chargement des disponibilités", Some(e.to_string())))?;
+                        .map_err(|e| {
+                            ApiError::new(
+                                "Erreur lors du chargement des disponibilités",
+                                Some(e.to_string()),
+                            )
+                        })?;
 
                     let conditions_list = temp_conditions
                         .filter(cond_temp_id.eq(temp_info.id))
                         .load::<TempCondition>(conn)
-                        .map_err(|e| ApiError::new("Erreur lors du chargement des conditions de travail", Some(e.to_string())))?;
+                        .map_err(|e| {
+                            ApiError::new(
+                                "Erreur lors du chargement des conditions de travail",
+                                Some(e.to_string()),
+                            )
+                        })?;
 
                     let diplomas_list = temp_diplomas
                         .filter(diplo_temp_id.eq(temp_info.id))
                         .load::<TempDiploma>(conn)
-                        .map_err(|e| ApiError::new("Erreur lors du chargement des documents/certifications", Some(e.to_string())))?;
+                        .map_err(|e| {
+                            ApiError::new(
+                                "Erreur lors du chargement des certifications",
+                                Some(e.to_string()),
+                            )
+                        })?;
 
                     let experiences_list = temp_experiences
                         .filter(exp_temp_id.eq(temp_info.id))
                         .load::<TempExperience>(conn)
-                        .map_err(|e| ApiError::new("Erreur lors du chargement des experiences", Some(e.to_string())))?;
+                        .map_err(|e| {
+                            ApiError::new(
+                                "Erreur lors du chargement des experiences",
+                                Some(e.to_string()),
+                            )
+                        })?;
+
+                    let skills_list = temp_skills
+                        .filter(skill_temp_id.eq(temp_info.id))
+                        .load::<TempSkill>(conn)
+                        .map_err(|e| {
+                            ApiError::new(
+                                "Erreur lors du chargement des compétences",
+                                Some(e.to_string()),
+                            )
+                        })?;
+
+                    let docs_list = temp_documents
+                        .filter(doc_temp_id.eq(temp_info.id))
+                        .load::<TempDocument>(conn)
+                        .map_err(|e| {
+                            ApiError::new(
+                                "Erreur lors du chargement des documents",
+                                Some(e.to_string()),
+                            )
+                        })?;
 
                     let profile = FullProfileData::Temp {
                         user: user_info,
@@ -92,6 +137,8 @@ pub async fn get_profile(req: HttpRequest, pool: web::Data<DbPool>) -> impl Resp
                             conditions: conditions_list,
                             diplomas: diplomas_list,
                             experiences: experiences_list,
+                            skills: skills_list,
+                            documents: docs_list,
                         },
                     };
                     println!(

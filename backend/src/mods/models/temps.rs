@@ -13,6 +13,8 @@ pub struct TempProfile {
     pub conditions: Vec<TempCondition>,
     pub diplomas: Vec<TempDiploma>,
     pub experiences: Vec<TempExperience>,
+    pub skills: Vec<TempSkill>,
+    pub documents: Vec<TempDocument>,
 }
 
 // Informations personnelles

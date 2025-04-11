@@ -44,9 +44,11 @@ export default function Profile() {
                         temp_data: data.user.role === "temp" ? {
                             temp_info: data.temp.temp,
                             availabilities: data.temp.availabilities,
-                            documents: data.temp.diplomas,
+                            diplomas: data.temp.diplomas,
                             experiences: data.temp.experiences,
                             conditions: data.temp.conditions,
+                            skills: data.temp.skills,
+                            documents: data.temp.documents,
                         } : undefined,
                         owner_data: data.user.role === "owner" ? {
                             owner: data.owner,
@@ -107,14 +109,13 @@ export default function Profile() {
                         <>
                             <h3>Informations intérimaires</h3>
                             <br />
-                            <p>Nom complet: {profileData.temp_data.temp_info.full_name}</p>
+                            <p>Nom : {profileData.temp_data.temp_info.last_name}</p>
+                            <p>Prénom : {profileData.temp_data.temp_info.first_name}</p>
                             <p>Adresse: {profileData.temp_data?.temp_info.address}</p>
                             <p>Téléphone: {profileData.temp_data?.temp_info.phone}</p>
                             {profileData.temp_data?.temp_info.birth_date && <p>Date de naissance: {profileData.temp_data?.temp_info.birth_date}</p>}
                             <p>Permis de conduire: {profileData.temp_data?.temp_info.driver_license ? "Oui" : "Non"}</p>
-                            <p>Moyen de transport: {profileData.temp_data?.temp_info.transport}</p>
-                            {profileData.temp_data?.temp_info.motivation && <p>Motivation: {profileData.temp_data?.temp_info.motivation}</p>}
-                            <p>Casier judiciaire: {profileData.temp_data?.temp_info.judicial_record}</p>
+                            <p>Moyen de transport: {profileData.temp_data?.temp_info.transport_modes}</p>
                             {/* Disponibilités */}
                             <h4 className="text-lg font-medium mt-4">Disponibilités</h4>
                             {profileData.temp_data.availabilities.map((a, index) => (
@@ -140,7 +141,7 @@ export default function Profile() {
 
                             {/* Diplômes */}
                             <h4 className="text-lg font-medium mt-4">Diplômes</h4>
-                            {profileData.temp_data?.documents?.map((d, index) => (
+                            {profileData.temp_data?.diplomas?.map((d, index) => (
                                 <div key={index} className="ml-4 mb-2">
                                     <p>Diplôme: {d.diploma_name}</p>
                                     <p>Autres certifications: {d.other_certifications}</p>

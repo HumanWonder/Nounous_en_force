@@ -3,29 +3,38 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../hooks/useAuth";
 
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+
 import type { IntervenantFormData } from "../../../types/user";
 
 export default function IntervenantRegister() {
     const router = useRouter();
     const { token, isAuthenticated } = useAuth();
+    const [documents, setDocuments] = useState<FileList | null>(null)
+
     // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const [formData, setFormData] = useState<IntervenantFormData>({
         temp_info: {
-            full_name: "",
+            last_name: "",
+            first_name: "",
             address: "",
             phone: "",
             birth_date: "",
             driver_license: false,
-            transport: "",
-            motivation: "",
-            judicial_record: "",
-            availabilities: [{ available_periods: "", work_hours: "", preferred_locations: "", max_travel_time: "" }],
-            conditions: [{ hourly_rate: "", contract_types: "", self_employment: "" }],
-            documents: [{ diploma_name: "", other_certifications: "", year_obtained: "", institution: "" }],
-            experiences: [{ total_experience: "", previous_jobs: "", structure_types: "", tasks: "" }]
+            transport_modes: "",
         },
-    });
+        availabilities: [{ available_periods: "", work_hours: "", preferred_locations: "", max_travel_time: "" }],
+        conditions: [{ hourly_rate: "", contract_types: "", self_employment: "" }],
+        diplomas: [{ diploma_name: "", other_certifications: "", year_obtained: "", institution: "" }],
+        experiences: [{ total_experience: "", previous_jobs: "", structure_types: "", tasks: "" }],
+        skills: [{ languages: "", pedagogies: "", special_skills: "", special_needs_handling: "" }],
+        documents: [{ motivation_letter: "", professional_refs: "", required_docs: "", criminal_record: "", diplomas: "" }],
+    },
+    );
 
     // const toggleDropdown = () => {
     //     setIsDropdownOpen(!isDropdownOpen);
@@ -94,22 +103,23 @@ export default function IntervenantRegister() {
         //Data formattée pour correspondre exactement à la struct attendue dans le back-end
         const preparedData = {
             temp_info: {
-                full_name: formData.temp_info.full_name,
+                last_name: formData.temp_info.last_name,
+                first_name: formData.temp_info.first_name,
                 address: formData.temp_info.address,
                 phone: formData.temp_info.phone,
                 birth_date: formData.temp_info.birth_date || null,
                 driver_license: formData.temp_info.driver_license,
-                transport: formData.temp_info.transport,
-                motivation: formData.temp_info.motivation || null,
-                judicial_record: formData.temp_info.judicial_record,
+                transport: formData.temp_info.transport_modes,
             },
-            availabilities: formData.temp_info.availabilities,
-            conditions: formData.temp_info.conditions,
-            documents: formData.temp_info.documents.map((doc) => ({
+            availabilities: formData.availabilities,
+            conditions: formData.conditions,
+            diplomas: formData.diplomas.map((doc) => ({
                 ...doc,
                 year_obtained: parseInt(doc.year_obtained, 10)
             })),
-            experiences: formData.temp_info.experiences
+            experiences: formData.experiences,
+            skills: formData.skills,
+            documents: formData.documents,
         };
 
 
@@ -135,87 +145,107 @@ export default function IntervenantRegister() {
     };
 
     return (
-        <div className="max-w-none mx-auto p-6 bg-white shadow-md rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Inscription Intervenant.e</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Première colonne */}
-                <div className="flex flex-col gap-4">
-                    <input className="input-field border p-2" type="text" name="full_name" value={formData.temp_info.full_name} onChange={handleChange} placeholder="Nom complet" />
-                    <input className="input-field border p-2" type="text" name="address" value={formData.temp_info.address} onChange={handleChange} placeholder="Adresse" />
-                    <input className="input-field border p-2" type="text" name="phone" value={formData.temp_info.phone} onChange={handleChange} placeholder="Téléphone" />
-                    <input className="input-field border p-2" type="date" name="birth_date" value={formData.temp_info.birth_date} onChange={handleChange} />
-                    <div className="flex items-center gap-2">
-                        <input type="checkbox" name="driver_license" checked={formData.temp_info.driver_license} onChange={handleChange} />
-                        <label>Possède un permis de conduire</label>
-                    </div>
-                    <input className="input-field border p-2" type="text" name="transport" value={formData.temp_info.transport} onChange={handleChange} placeholder="Mode de transport" />
-                    <textarea className="input-field border p-2" name="motivation" value={formData.temp_info.motivation} onChange={handleChange} placeholder="Motivation"></textarea>
-                    <input className="input-field border p-2" type="text" name="judicial_record" value={formData.temp_info.judicial_record} onChange={handleChange} placeholder="Casier judiciaire" />
+        <form
+            onSubmit={handleSubmit}
+            className="max-w-4xl mx-auto px-4 py-8 bg-white rounded-2xl shadow-md space-y-10"
+        >
+            <h1 className="text-3xl font-bold text-center text-primary">Formulaire Intervenant·e / Remplaçant·e</h1>
+
+            {/* A. Informations personnelles */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-700">A. Informations personnelles</h2>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <Input name="name" required placeholder="Nom et prénom" className="w-full" />
+                    <Input name="birthdate" type="date" placeholder="Date de naissance" className="w-full" />
                 </div>
-
-                {/* Deuxième colonne */}
-                <div className="flex flex-col gap-4">
-                    {/* Disponibilités dynamiques */}
-                    <h3 className="text-lg font-semibold">Disponibilités</h3>
-                    {(formData.temp_info.availabilities || []).map((availability, index) => (
-                        <div key={index} className="border p-2 rounded">
-                            <input className="input-field border p-2" type="text" value={availability.available_periods} onChange={(e) => handleArrayChange(index, "available_periods", e.target.value, "availabilities")} placeholder="Périodes disponibles (ex: Lundi-Vendredi)" />
-                            <input className="input-field border p-2" type="text" value={availability.work_hours} onChange={(e) => handleArrayChange(index, "work_hours", e.target.value, "availabilities")} placeholder="Horaires disponibles (ex: 9h-18h)" />
-                            <input className="input-field border p-2" type="text" value={availability.preferred_locations} onChange={(e) => handleArrayChange(index, "preferred_locations", e.target.value, "availabilities")} placeholder="Lieux souhaités" />
-                            <input className="input-field border p-2" type="text" value={availability.max_travel_time} onChange={(e) => handleArrayChange(index, "max_travel_time", e.target.value, "availabilities")} placeholder="Temps de déplacement max (ex: 30min)" />
-                        </div>
-                    ))}
-                    <button type="button" className="btn-secondary" onClick={() => addArrayField("availabilities", { available_periods: "", work_hours: "", preferred_locations: "", max_travel_time: "" })}>
-                        Ajouter une disponibilité
-                    </button>
-
-                    {/* Conditions de travail souhaitées */}
-                    <h3 className="text-lg font-semibold">Conditions de travail</h3>
-                    {(formData.temp_info.conditions || []).map((conditions, index) => (
-                        <div key={index} className="border p-2 rounded">
-                            <input className="input-field border p-2" type="text" value={conditions.contract_types} onChange={(e) => handleArrayChange(index, "contract_types", e.target.value, "conditions")} placeholder="Type de contrat souhaité" />
-                            <input className="input-field border p-2" type="text" value={conditions.hourly_rate} onChange={(e) => handleArrayChange(index, "hourly_rate", e.target.value, "conditions")} placeholder="Horaires de travail souhaités (ex: 9h-18h)" />
-                            <select className="input-field border p-2" name="self-employment" value={conditions.self_employment === null ? "" : conditions.self_employment ? "true" : "false"} onChange={(e) => handleArrayChange(index, "self_employment", e.target.value === "true", "conditions")}>
-                                <option value="">{/* Valeur par défaut*/}Souhaitez-vous faire de l'auto-entreprenariat ?</option>
-                                <option value="true">Oui</option>
-                                <option value="false">Non</option>
-                            </select>
-                        </div>
-                    ))}
-
-                    {/* Expériences dynamiques */}
-                    <h3 className="text-lg font-semibold">Expériences</h3>
-                    {(formData.temp_info.experiences || []).map((experience, index) => (
-                        <div key={index} className="border p-2 rounded">
-                            <input className="input-field border p-2" type="text" value={experience.total_experience} onChange={(e) => handleArrayChange(index, "total_experience", e.target.value, "experiences")} placeholder="Expérience totale" />
-                            <input className="input-field border p-2" type="text" value={experience.previous_jobs} onChange={(e) => handleArrayChange(index, "previous_jobs", e.target.value, "experiences")} placeholder="Précédents emplois" />
-                            <input className="input-field border p-2" type="text" value={experience.structure_types} onChange={(e) => handleArrayChange(index, "structure_types", e.target.value, "experiences")} placeholder="Types de structures" />
-                            <input className="input-field border p-2" type="text" value={experience.tasks} onChange={(e) => handleArrayChange(index, "tasks", e.target.value, "experiences")} placeholder="Tâches réalisées" />
-                        </div>
-                    ))}
-                    <button type="button" className="btn-secondary" onClick={() => addArrayField("experiences", { total_experience: "", previous_jobs: "", structure_types: "", tasks: "" })}>
-                        Ajouter une expérience
-                    </button>
-
-                    {/* Diplômes dynamiques */}
-                    <h3 className="text-lg font-semibold">Diplômes</h3>
-                    {(formData.temp_info.documents || []).map((doc, index) => (
-                        <div key={index} className="border p-2 rounded">
-                            <input className="input-field border p-2" type="text" value={doc.diploma_name} onChange={(e) => handleArrayChange(index, "diploma_name", e.target.value, "documents")} placeholder="Nom du diplôme" />
-                            <input className="input-field border p-2" type="text" value={doc.other_certifications} onChange={(e) => handleArrayChange(index, "other_certifications", e.target.value, "documents")} placeholder="Autres certifications" />
-                            <input className="input-field border p-2" type="number" value={doc.year_obtained} onChange={(e) => handleArrayChange(index, "year_obtained", e.target.value, "documents")} placeholder="Année d'obtention" />
-                            <input className="input-field border p-2" type="text" value={doc.institution} onChange={(e) => handleArrayChange(index, "institution", e.target.value, "documents")} placeholder="Institution" />
-                        </div>
-                    ))}
-                    <button type="button" className="btn-secondary" onClick={() => addArrayField("documents", { diploma_name: "", other_certifications: "", year_obtained: "", institution: "" })}>
-                        Ajouter un diplôme
-                    </button>
+                <Input name="address" required placeholder="Adresse complète" className="w-full" />
+                <div className="grid md:grid-cols-2 gap-4">
+                    <Input name="phone" type="tel" required placeholder="Téléphone" className="w-full" />
+                    <Input name="email" type="email" required placeholder="E-mail" className="w-full" />
                 </div>
-            </div>
-            {/* Bouton de soumission centré sous les colonnes */}
-            <div className="flex justify-center mt-6 border">
-                <button type="submit" onClick={handleSubmit} className="btn-primary">Envoyer</button>
-            </div>
-        </div>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="has_license">Permis de conduire :</Label>
+                    <select name="has_license" className="w-full border rounded p-2">
+                        <option value="yes">Oui</option>
+                        <option value="no">Non</option>
+                    </select>
+                </div>
+                <Input name="transport" placeholder="Moyen de transport" className="w-full" />
+            </section>
+
+            {/* B. Formation et diplômes */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-700">B. Formation et diplômes</h2>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <Input name="main_diploma" required placeholder="Diplôme principal" className="w-full" />
+                    <Input name="other_diplomas" placeholder="Autres diplômes / certifications" className="w-full" />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <Input name="graduation_year" type="number" placeholder="Année d'obtention" className="w-full" />
+                    <Input name="school" placeholder="Établissement de formation" className="w-full" />
+                </div>
+            </section>
+
+            {/* C. Expérience pro */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-700">C. Expérience professionnelle</h2>
+                <Input name="total_experience" placeholder="Expérience totale en petite enfance" className="w-full" />
+                <Textarea name="previous_positions" placeholder="Postes précédents" className="w-full" />
+                <Input name="structures" placeholder="Types de structures fréquentées" className="w-full" />
+                <Textarea name="tasks" placeholder="Tâches réalisées" className="w-full" />
+            </section>
+
+            {/* D. Compétences spécifiques */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-700">D. Compétences spécifiques</h2>
+                <Input name="languages" placeholder="Langues parlées" className="w-full" />
+                <Input name="pedagogies" placeholder="Pédagogies ou méthodes connues" className="w-full" />
+                <Input name="skills" placeholder="Savoir-faire particuliers" className="w-full" />
+                <Input name="situations" placeholder="Gestion de situations particulières" className="w-full" />
+            </section>
+
+            {/* E. Disponibilités */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-700">E. Disponibilités</h2>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <Input name="availability_periods" placeholder="Périodes disponibles" className="w-full" />
+                    <Input name="time_slots" placeholder="Plages horaires" className="w-full" />
+                </div>
+                <Input name="zones" placeholder="Zones géographiques acceptées" className="w-full" />
+                <Input name="travel_time" placeholder="Temps de trajet maximum" className="w-full" />
+            </section>
+
+            {/* F. Rémunération */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-700">F. Rémunération et conditions</h2>
+                <Input name="rate" placeholder="Taux horaire / prétentions salariales" className="w-full" />
+                <Input name="contract_types" placeholder="Types de contrats acceptés" className="w-full" />
+                <Input name="auto_entrepreneur" placeholder="Possibilité de facturation en auto-entreprise" className="w-full" />
+            </section>
+
+            {/* G. Autres informations */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-700">G. Autres informations</h2>
+                <Textarea name="motivation" placeholder="Mini-lettre de motivation" className="w-full" />
+                <Textarea name="references" placeholder="Références professionnelles" className="w-full" />
+                <div className="space-y-2">
+                    <Label>Documents à fournir :</Label>
+                    <Input
+                        type="file"
+                        name="documents"
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => setDocuments(e.target.files)}
+                        className="w-full"
+                    />
+                    <p className="text-sm text-gray-500">Joindre casier judiciaire, diplômes, attestations...</p>
+                </div>
+            </section>
+
+            <Button type="submit" className="w-full mt-6">
+                Envoyer le formulaire
+            </Button>
+        </form>
+
     );
 }
