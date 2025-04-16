@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 
+import { Accordion } from "@/components/ui/Accordion";
 import type { FullProfileData } from "../types/user";
 
 export default function Profile() {
@@ -86,7 +87,7 @@ export default function Profile() {
             {message && <p>{message}</p>}
             {profileData ? (
                 <div>
-                    <h2>Profil de l'utilisateur</h2>
+                    <h2 className="text-2xl font-bold mb-4">Mon profil {profileData.user.role}</h2>
                     <br />
                     <p>Email : {profileData.user.email}</p>
                     <p>Rôle : {profileData.user.role}</p>
@@ -107,64 +108,94 @@ export default function Profile() {
                     {/* Affiche d'autres données utilisateur ici */}
                     {profileData.user.role === "temp" && profileData.temp_data ? (
                         <>
-                            <h3>Informations intérimaires</h3>
-                            <br />
-                            <p>Nom : {profileData.temp_data.temp_info.last_name}</p>
-                            <p>Prénom : {profileData.temp_data.temp_info.first_name}</p>
-                            <p>Adresse: {profileData.temp_data?.temp_info.address}</p>
-                            <p>Téléphone: {profileData.temp_data?.temp_info.phone}</p>
-                            {profileData.temp_data?.temp_info.birth_date && <p>Date de naissance: {profileData.temp_data?.temp_info.birth_date}</p>}
-                            <p>Permis de conduire: {profileData.temp_data?.temp_info.driver_license ? "Oui" : "Non"}</p>
-                            <p>Moyen de transport: {profileData.temp_data?.temp_info.transport_modes}</p>
-                            {/* Disponibilités */}
-                            <h4 className="text-lg font-medium mt-4">Disponibilités</h4>
-                            {profileData.temp_data.availabilities.map((a, index) => (
-
-                                <div key={index} className="ml-4 mb-2">
-                                    <p>Périodes disponibles: {a.available_periods}</p>
-                                    <p>Horaires: {a.work_hours}</p>
-                                    <p>Zones préférées: {a.preferred_locations}</p>
-                                    <p>Temps de trajet max: {a.max_travel_time}</p>
-                                    <p>---------------------------------------------</p>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+                                {/* Colonne gauche */}
+                                <div className="bg-white p-4 rounded-xl shadow space-y-2">
+                                    <div className="space-y-1">
+                                        <p><strong>Nom :</strong> {profileData.temp_data.temp_info.last_name}</p>
+                                        <p><strong>Prénom :</strong> {profileData.temp_data.temp_info.first_name}</p>
+                                        <p><strong>Adresse :</strong> {profileData.temp_data.temp_info.address}</p>
+                                        <p><strong>Téléphone :</strong> {profileData.temp_data.temp_info.phone}</p>
+                                        <p><strong>Date de naissance :</strong> {profileData.temp_data.temp_info.birth_date}</p>
+                                        <p><strong>Permis :</strong> {profileData.temp_data.temp_info.has_driver_license ? "Oui" : "Non"}</p>
+                                        <p><strong>Transport :</strong> {profileData.temp_data.temp_info.transport_mode}</p>
+                                    </div>
                                 </div>
-                            ))}
 
-                            {/* Conditions de travail */}
-                            <h4 className="text-lg font-medium mt-4">Conditions de travail</h4>
-                            {profileData.temp_data.conditions?.map((c, index) => (
-                                <div key={index} className="ml-4 mb-2">
-                                    <p>Taux horaire: {c.hourly_rate}€</p>
-                                    <p>Types de contrat: {c.contract_types}</p>
-                                    <p>Auto-entrepreneur: {c.self_employment ? "Oui" : "Non"}</p>
-                                </div>
-                            ))}
+                                {/* Colonne droite */}
+                                <div className="space-y-4">
+                                    <Accordion title="Disponibilités">
+                                        {profileData.temp_data.availabilities.map((a, i) => (
+                                            <div key={i} className="mb-2">
+                                                <p>Périodes : {a.availability_periods}</p>
+                                                <p>Horaires : {a.time_slots}</p>
+                                                <p>Zones : {a.geographic_zones}</p>
+                                                <p>Trajet max : {a.max_travel_time}</p>
+                                            </div>
+                                        ))}
+                                    </Accordion>
 
-                            {/* Diplômes */}
-                            <h4 className="text-lg font-medium mt-4">Diplômes</h4>
-                            {profileData.temp_data?.diplomas?.map((d, index) => (
-                                <div key={index} className="ml-4 mb-2">
-                                    <p>Diplôme: {d.diploma_name}</p>
-                                    <p>Autres certifications: {d.other_certifications}</p>
-                                    <p>Année d'obtention: {d.year_obtained}</p>
-                                    <p>Établissement: {d.institution}</p>
-                                </div>
-                            ))}
+                                    <Accordion title="Conditions de travail">
+                                        {profileData.temp_data.conditions?.map((c, i) => (
+                                            <div key={i}>
+                                                <p>Taux horaire : {c.hourly_rate}€</p>
+                                                <p>Contrats : {c.contract_types}</p>
+                                                <p>Auto-entrepreneur : {c.auto_entrepreneur ? "Oui" : "Non"}</p>
+                                            </div>
+                                        ))}
+                                    </Accordion>
 
-                            {/* Expériences */}
-                            <h4 className="text-lg font-medium mt-4">Expériences professionnelles</h4>
-                            {profileData.temp_data?.experiences?.map((e, index) => (
-                                <div key={index} className="ml-4 mb-2">
-                                    <p>Total d'expérience: {e.total_experience}</p>
-                                    <p>Postes précédents: {e.previous_jobs}</p>
-                                    <p>Types de structures: {e.structure_types}</p>
-                                    <p>Tâches réalisées: {e.tasks}</p>
+                                    <Accordion title="Diplômes">
+                                        {profileData.temp_data.diplomas?.map((d, i) => (
+                                            <div key={i}>
+                                                <p>Diplôme : {d.main_diploma}</p>
+                                                <p>Autres certifications : {d.other_certifications}</p>
+                                                <p>Année : {d.graduation_year}</p>
+                                                <p>Établissement : {d.school}</p>
+                                            </div>
+                                        ))}
+                                    </Accordion>
+
+                                    <Accordion title="Expériences professionnelles">
+                                        {profileData.temp_data.experiences?.map((e, i) => (
+                                            <div key={i}>
+                                                <p>Expérience : {e.total_experience}</p>
+                                                <p>Postes : {e.previous_positions}</p>
+                                                <p>Structures : {e.structure_types}</p>
+                                                <p>Tâches : {e.tasks}</p>
+                                            </div>
+                                        ))}
+                                    </Accordion>
+
+                                    <Accordion title="Compétences">
+                                        {profileData.temp_data.skills?.map((s, i) => (
+                                            <div key={i}>
+                                                <p>Langues : {s.languages}</p>
+                                                <p>Pédagogies : {s.pedagogies}</p>
+                                                <p>Compétences : {s.special_skills}</p>
+                                                <p>Prise en charge : {s.special_needs_handling}</p>
+                                            </div>
+                                        ))}
+                                    </Accordion>
+
+                                    <Accordion title="Documents">
+                                        {profileData.temp_data.documents?.map((doc, i) => (
+                                            <div key={i}>
+                                                <p>Lettre de motivation : {doc.motivation_letter}</p>
+                                                <p>Casier judiciaire : {doc.criminal_record}</p>
+                                                <p>Identité : {doc.required_documents}</p>
+                                                <p>Diplômes : {doc.diplomas}</p>
+                                                <p>Références : {doc.professional_references}</p>
+                                            </div>
+                                        ))}
+                                    </Accordion>
                                 </div>
-                            ))}
+                            </div>
                         </>
                     ) : null}
                 </div>
             ) : (
-                <p>Chargement...</p>
+                <p>Données indisponibles...</p>
             )}
         </div>
     );
