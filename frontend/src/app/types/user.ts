@@ -33,33 +33,34 @@ export interface TempData {
     address: string;
     phone: string;
     birth_date: string;
-    driver_license: boolean;
-    transport_modes: string;
+    has_driver_license: boolean;
+    transport_mode: string;
 }
 
 export interface Availability {
-    available_periods: string;
-    work_hours: string;
-    preferred_locations: string;
+    availability_periods: string;
+    time_slots: string;
+    geographic_zones: string;
     max_travel_time: string;
 }
 
 export interface WorkCondition {
     hourly_rate: string;
     contract_types: string; // e.g. "CDD", "CDI"
-    self_employment: string;
+    auto_entrepreneur: boolean;
 }
 
 export interface Diploma {
-    diploma_name: string;
+    main_diploma: string;
     other_certifications: string;
-    year_obtained: string;
-    institution: string;
+    //ATTENTION, number reste string même si type constant. TypeScript a quand même besoin d'une conversion à l'exécution
+    graduation_year: string;
+    school: string;
 }
 
 export interface Experience {
     total_experience: string;
-    previous_jobs: string;
+    previous_positions: string;
     structure_types: string;
     tasks: string;
 }
@@ -73,8 +74,8 @@ export interface Skill {
 
 export interface Document {
     motivation_letter: string,
-    professional_refs: string,
-    required_docs: string,
+    professional_references: string,
+    required_documents: string,
     criminal_record: string,
     diplomas: string,
 }

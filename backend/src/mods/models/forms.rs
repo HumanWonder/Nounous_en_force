@@ -37,6 +37,7 @@ pub struct TempRegistration {
     pub last_name: String,
     pub address: String,
     pub phone: String,
+    #[serde(skip)]
     pub email: String,
     pub birth_date: Option<NaiveDate>,
     pub has_driver_license: bool,

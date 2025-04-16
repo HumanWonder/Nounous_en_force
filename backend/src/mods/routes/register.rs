@@ -130,89 +130,89 @@ async fn register_temp(
         last_name: data.temp_info.last_name.clone(),
         address: data.temp_info.address.clone(),
         phone: data.temp_info.phone.clone(),
-        email: data.temp_info.email.clone(),
+        email: user_data.0.clone(),
         birth_date: data.temp_info.birth_date.clone(),
         has_driver_license: data.temp_info.has_driver_license,
         transport_mode: data.temp_info.transport_mode.clone(),
     };
 
-    let mut availability_inserts = Vec::new(); //Vecteur pour insérer plusieurs données: table = Vec
-    let mut condition_inserts = Vec::new();
-    let mut diploma_inserts = Vec::new();
-    let mut experience_inserts = Vec::new();
-    let mut skill_inserts = Vec::new();
-    let mut documents_inserts = Vec::new();
+    // let mut availability_inserts = Vec::new(); //Vecteur pour insérer plusieurs données: table = Vec
+    // let mut condition_inserts = Vec::new();
+    // let mut diploma_inserts = Vec::new();
+    // let mut experience_inserts = Vec::new();
+    // let mut skill_inserts = Vec::new();
+    // let mut documents_inserts = Vec::new();
 
-    for availability_data in &data.availabilities {
-        let new_availability = TempAvailabilityForm {
-            temp_id: Some(db_user_id),
-            availability_periods: availability_data.availability_periods.clone(),
-            time_slots: availability_data.time_slots.clone(),
-            geographic_zones: availability_data.geographic_zones.clone(),
-            max_travel_time: availability_data.max_travel_time.clone(),
-        };
-        availability_inserts.push(new_availability);
-    }
+    // for availability_data in &data.availabilities {
+    //     let new_availability = TempAvailabilityForm {
+    //         temp_id: Some(db_user_id),
+    //         availability_periods: availability_data.availability_periods.clone(),
+    //         time_slots: availability_data.time_slots.clone(),
+    //         geographic_zones: availability_data.geographic_zones.clone(),
+    //         max_travel_time: availability_data.max_travel_time.clone(),
+    //     };
+    //     availability_inserts.push(new_availability);
+    // }
 
-    // Insertion des horaires de travail
-    for work_data in &data.conditions {
-        let new_condition = TempConditionForm {
-            temp_id: Some(db_user_id),
-            hourly_rate: work_data.hourly_rate.clone(),
-            contract_types: work_data.contract_types.clone(),
-            auto_entrepreneur: work_data.auto_entrepreneur,
-        };
-        condition_inserts.push(new_condition);
-    }
+    // // Insertion des horaires de travail
+    // for work_data in &data.conditions {
+    //     let new_condition = TempConditionForm {
+    //         temp_id: Some(db_user_id),
+    //         hourly_rate: work_data.hourly_rate.clone(),
+    //         contract_types: work_data.contract_types.clone(),
+    //         auto_entrepreneur: work_data.auto_entrepreneur,
+    //     };
+    //     condition_inserts.push(new_condition);
+    // }
 
-    // Insertion des diplômes
-    for diploma_data in &data.diplomas {
-        let new_diploma = TempDiplomaForm {
-            temp_id: Some(db_user_id),
-            main_diploma: diploma_data.main_diploma.clone(),
-            other_certifications: diploma_data.other_certifications.clone(),
-            graduation_year: diploma_data.graduation_year,
-            school: diploma_data.school.clone(),
-        };
-        diploma_inserts.push(new_diploma);
-    }
+    // // Insertion des diplômes
+    // for diploma_data in &data.diplomas {
+    //     let new_diploma = TempDiplomaForm {
+    //         temp_id: Some(db_user_id),
+    //         main_diploma: diploma_data.main_diploma.clone(),
+    //         other_certifications: diploma_data.other_certifications.clone(),
+    //         graduation_year: diploma_data.graduation_year,
+    //         school: diploma_data.school.clone(),
+    //     };
+    //     diploma_inserts.push(new_diploma);
+    // }
 
-    // Insertion des expériences
-    for experience_data in &data.experiences {
-        let new_experience = TempExperienceForm {
-            temp_id: Some(db_user_id),
-            total_experience: experience_data.total_experience.clone(),
-            previous_positions: experience_data.previous_positions.clone(),
-            structure_types: experience_data.structure_types.clone(),
-            tasks: experience_data.tasks.clone(),
-        };
-        experience_inserts.push(new_experience);
-    }
+    // // Insertion des expériences
+    // for experience_data in &data.experiences {
+    //     let new_experience = TempExperienceForm {
+    //         temp_id: Some(db_user_id),
+    //         total_experience: experience_data.total_experience.clone(),
+    //         previous_positions: experience_data.previous_positions.clone(),
+    //         structure_types: experience_data.structure_types.clone(),
+    //         tasks: experience_data.tasks.clone(),
+    //     };
+    //     experience_inserts.push(new_experience);
+    // }
 
-    //Insertion des skills
-    for skill_data in &data.skills {
-        let new_skill = TempSkillForm {
-            temp_id: Some(db_user_id),
-            languages: skill_data.languages.clone(),
-            pedagogies: skill_data.pedagogies.clone(),
-            special_skills: skill_data.special_skills.clone(),
-            special_needs_handling: skill_data.special_needs_handling.clone(),
-        };
-        skill_inserts.push(new_skill);
-    }
+    // //Insertion des skills
+    // for skill_data in &data.skills {
+    //     let new_skill = TempSkillForm {
+    //         temp_id: Some(db_user_id),
+    //         languages: skill_data.languages.clone(),
+    //         pedagogies: skill_data.pedagogies.clone(),
+    //         special_skills: skill_data.special_skills.clone(),
+    //         special_needs_handling: skill_data.special_needs_handling.clone(),
+    //     };
+    //     skill_inserts.push(new_skill);
+    // }
 
-    //Insertion des documents
-    for doc_data in &data.documents {
-        let new_doc = TempDocumentForm {
-            temp_id: Some(db_user_id),
-            motivation_letter: doc_data.motivation_letter.clone(),
-            professional_references: doc_data.professional_references.clone(),
-            diplomas: doc_data.diplomas.clone(),
-            criminal_record: doc_data.criminal_record.clone(),
-            required_documents: doc_data.required_documents.clone(),
-        };
-        documents_inserts.push(new_doc);
-    }
+    // //Insertion des documents
+    // for doc_data in &data.documents {
+    //     let new_doc = TempDocumentForm {
+    //         temp_id: Some(db_user_id),
+    //         motivation_letter: doc_data.motivation_letter.clone(),
+    //         professional_references: doc_data.professional_references.clone(),
+    //         diplomas: doc_data.diplomas.clone(),
+    //         criminal_record: doc_data.criminal_record.clone(),
+    //         required_documents: doc_data.required_documents.clone(),
+    //     };
+    //     documents_inserts.push(new_doc);
+    // }
 
     // Transaction dans la base de données (multiples tables)
     match conn.transaction::<_, diesel::result::Error, _>(|conn| {
