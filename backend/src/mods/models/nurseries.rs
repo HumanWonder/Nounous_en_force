@@ -1,24 +1,29 @@
 use serde::{Serialize, Deserialize};
-use diesel::prelude::Queryable;
+use diesel::prelude::{Queryable, Insertable, Identifiable, Associations};
 use uuid::Uuid;
 
-use crate::mods::models::user::User;
+use crate::mods::utils::schema::{
+    nurseries,
+    nursery_description,
+    nursery_responsibles,
+    replacement_needs,
+};
 
 #[derive(Serialize)]
 // #[diesel(table_name = creche_responsables)]
 pub struct OwnerProfile {
-    pub user: User, // Composition
-    pub creche_id: Uuid,
-    pub name: String,
-    pub address: String,
-    pub phone: String,
-    pub capacity: i32,
+    pub nursery: Vec<Nursery>,
+    pub responsible: Vec<NurseryResponsible>,
+    pub description: Vec<NurseryDescription>,
+    pub needs: Vec<ReplacementNeed>,
 }
 
 //Informations de la créche
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Insertable, Identifiable)]
+#[diesel(table_name = nurseries)]
 pub struct Nursery {
     pub id: Uuid,
+    //Lien entre le user connecté et les crèches dont il a accès
     pub user_id: Option<Uuid>,
     pub name: String,
     pub address: String,
@@ -29,7 +34,9 @@ pub struct Nursery {
 }
 
 //Description de la créche
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Insertable, Identifiable, Associations)]
+#[diesel(belongs_to(Nursery))]
+#[diesel(table_name = nursery_description)]
 pub struct NurseryDescription {
     pub id: Uuid,
     pub nursery_id: Option<Uuid>,
@@ -39,7 +46,10 @@ pub struct NurseryDescription {
 }
 
 //Informations sur le/la principal responsable de la créche
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Insertable, Identifiable, Associations)]
+#[diesel(belongs_to(Nursery))]
+#[diesel(table_name = nursery_responsibles)]
+//Liste des responsables (drh, directrice, adjoint,etc.)
 pub struct NurseryResponsible {
     pub id: Uuid,
     pub nursery_id: Option<Uuid>,
@@ -51,7 +61,9 @@ pub struct NurseryResponsible {
 }
 
 //Description des besoins de remplacement
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Insertable, Identifiable, Associations)]
+#[diesel(belongs_to(Nursery))]
+#[diesel(table_name = replacement_needs)]
 pub struct ReplacementNeed {
     pub id: Uuid,
     pub nursery_id: Option<Uuid>,

@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use chrono::NaiveDate;
 use uuid::Uuid;
 
-use crate::mods::utils::schema::{temp_availabilities, temp_conditions, temp_diplomas, temp_documents, temp_experiences, temp_skills, temps};
+use crate::mods::utils::schema::{temp_availabilities, temp_conditions, temp_diplomas, temp_documents, temp_experiences, temp_skills, temps,
+nursery_description, nursery_responsibles, replacement_needs, nurseries};
 #[derive(Deserialize)]
 pub struct RegisterUser {
     pub email: String,
@@ -90,6 +91,7 @@ pub struct TempExperienceForm {
     pub tasks: Option<String>,
 }
 
+// Compétences
 #[derive(Insertable, Serialize, Deserialize)]
 #[diesel(table_name = temp_skills)]
 pub struct TempSkillForm {
@@ -101,6 +103,7 @@ pub struct TempSkillForm {
     pub special_needs_handling: Option<String>,
 }
 
+//Documents fournis
 #[derive(Insertable, Serialize, Deserialize)]
 #[diesel(table_name = temp_documents)]
 pub struct TempDocumentForm {
@@ -111,4 +114,56 @@ pub struct TempDocumentForm {
     pub required_documents: Option<String>,
     pub criminal_record: Option<String>,
     pub diplomas: Option<String>,
+}
+
+
+//Struct pour une requête globale
+#[derive(Deserialize)]
+pub struct OwnerRequest {
+    pub nursery: NewNurseryForm,
+    pub description: Option<NurseryDescriptionForm>,
+    pub responsible: Option<NurseryResponsibleForm>,
+    pub needs: Vec<ReplacementNeedForm>,
+}
+
+#[derive(Insertable, Deserialize)]
+#[diesel(table_name = nurseries)]
+pub struct NewNurseryForm {
+    pub name: String,
+    pub address: String,
+    pub phone: Option<String>,
+    pub email: Option<String>,
+    pub website: Option<String>,
+    pub structure_type: Option<String>,
+}
+
+#[derive(Insertable, Deserialize)]
+#[diesel(table_name = nursery_description)]
+pub struct NurseryDescriptionForm {
+    pub pedagogy: Option<String>,
+    pub specificities: Option<String>,
+    pub philosophy: Option<String>,
+}
+
+#[derive(Insertable, Deserialize)]
+#[diesel(table_name = nursery_responsibles)]
+pub struct NurseryResponsibleForm {
+    pub first_name: String,
+    pub last_name: String,
+    pub role: Option<String>,
+    pub direct_phone: Option<String>,
+    pub direct_email: Option<String>,
+}
+
+#[derive(Insertable, Deserialize)]
+#[diesel(table_name = replacement_needs)]
+pub struct ReplacementNeedForm {
+    pub searched_position: Option<String>,
+    pub replacement_reason: Option<String>,
+    pub estimated_duration: Option<String>,
+    pub available_periods: Option<String>,
+    pub hours_per_week: Option<String>,
+    pub main_tasks: Option<String>,
+    pub required_skills: Option<String>,
+    pub suggested_rate: Option<String>,
 }
