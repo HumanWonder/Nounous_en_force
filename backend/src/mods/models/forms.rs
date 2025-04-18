@@ -17,6 +17,11 @@ pub struct LoginUser {
     pub password: String,
 }
 
+// ______________________________________________________________________________________
+//|                                                                                      |
+//|                         FORMULAIRES                                                  |
+//|                                INTERVENANTS                                          |
+//|______________________________________________________________________________________|
 //Structure qui englobe les tables en une requête
 #[derive(Deserialize)]
 pub struct TempRequest {
@@ -116,6 +121,11 @@ pub struct TempDocumentForm {
     pub diplomas: Option<String>,
 }
 
+// ______________________________________________________________________________________
+//|                                                                                      |
+//|                         FORMULAIRES                                                  |
+//|                                GESTIONNAIRES CRECHES                                 |
+//|______________________________________________________________________________________|
 
 //Struct pour une requête globale
 #[derive(Deserialize)]
@@ -126,9 +136,11 @@ pub struct OwnerRequest {
     pub needs: Vec<ReplacementNeedForm>,
 }
 
-#[derive(Insertable, Deserialize)]
+#[derive(Insertable, Deserialize, Clone)]
 #[diesel(table_name = nurseries)]
 pub struct NewNurseryForm {
+    #[serde(skip)]
+    pub user_id: Option<Uuid>,
     pub name: String,
     pub address: String,
     pub phone: Option<String>,
@@ -140,6 +152,8 @@ pub struct NewNurseryForm {
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = nursery_description)]
 pub struct NurseryDescriptionForm {
+    #[serde(skip)]
+    pub nursery_id: Option<Uuid>,
     pub pedagogy: Option<String>,
     pub specificities: Option<String>,
     pub philosophy: Option<String>,
@@ -148,6 +162,8 @@ pub struct NurseryDescriptionForm {
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = nursery_responsibles)]
 pub struct NurseryResponsibleForm {
+    #[serde(skip)]
+    pub nursery_id: Option<Uuid>,
     pub first_name: String,
     pub last_name: String,
     pub role: Option<String>,
@@ -158,6 +174,8 @@ pub struct NurseryResponsibleForm {
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = replacement_needs)]
 pub struct ReplacementNeedForm {
+    #[serde(skip)]
+    pub nursery_id: Option<Uuid>,
     pub searched_position: Option<String>,
     pub replacement_reason: Option<String>,
     pub estimated_duration: Option<String>,

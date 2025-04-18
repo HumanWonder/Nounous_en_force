@@ -1,67 +1,24 @@
-//Routes pour inscriptions (owners et temps)
-use crate::db::DbPool;
-use crate::mods::models::apierror::ApiError;
-use crate::mods::models::forms::{
-    RegisterUser, TempAvailabilityForm, TempConditionForm, TempDiplomaForm, TempDocumentForm,
-    TempExperienceForm, TempRegistration, TempRequest, TempSkillForm,
-};
-use crate::mods::models::temps::Temp;
-use crate::mods::models::user::NewUser;
-use crate::mods::utils::schema::{
-    temp_availabilities::dsl::*, temp_conditions::dsl::*, temp_diplomas::dsl::*,
-    temp_documents::dsl::*, temp_experiences::dsl::*, temp_skills::dsl::*, temps::dsl::*, users,
-    users::dsl::*,
-};
-use crate::mods::utils::security::{hash_password, verify_jwt};
-use crate::mods::utils::{security, send_email};
-
-use actix_web::{http::header, post, web, HttpRequest, HttpResponse, Responder};
-use chrono::Duration;
-use diesel::*;
+use actix_web::{http::header, post, web, HttpRequest, HttpResponse};
+use diesel::{prelude::*, insert_into};
 use uuid::Uuid;
 
-#[post("/register")]
-async fn register_user(data: web::Json<RegisterUser>, pool: web::Data<DbPool>) -> impl Responder {
-    println!("Registering user");
-    let conn = &mut pool.get().expect("Erreur connexion DB");
-    let conv_hashed_password = hash_password(&data.password);
-
-    let new_user = NewUser {
-        email: data.email.clone(),
-        hashed_password: conv_hashed_password,
-        role: "pending".to_string(),
-        is_validated: false,
-        is_profile_validated: false,
-    };
-
-    match insert_into(users).values(&new_user).execute(conn) {
-        Ok(_) => {
-            println!("user registered");
-            //génération token
-            let validation_token =
-                security::generate_jwt(&data.email, None, &new_user.role, Duration::minutes(15));
-
-            // Envoi mail de validation
-            match send_email::send_verification_email(&data.email, &validation_token) {
-                Ok(_) => Ok(HttpResponse::Ok().json("Email envoyé")),
-                Err(err) => {
-                    println!("Erreur d'envoi d'email: {:?}", err);
-                    Err(ApiError::new("Erreur dans l'envoi de l'email", None))
-                }
-            }
-        }
-        Err(err) => {
-            println!("Erreur insertion user : {:?}", err);
-            Err(ApiError::new(
-                "Failed to register user",
-                Some("db_insert_failed".to_string()),
-            ))
-        }
-    }
-}
+use crate::db::DbPool;
+use crate::mods::models::{
+    apierror::ApiError,
+    temps::Temp,
+    forms::{
+        TempRequest, TempAvailabilityForm, TempConditionForm, TempDiplomaForm, TempDocumentForm,
+        TempExperienceForm, TempRegistration, TempSkillForm,
+    },
+    
+};
+use crate::mods::utils::{schema::{users::dsl::*, users,
+    temp_availabilities::dsl::*, temp_conditions::dsl::*, temp_diplomas::dsl::*, temp_documents::dsl::*,
+    temp_experiences::dsl::*, temp_skills::dsl::*, temps::dsl::*,
+}, security::verify_jwt};
 
 #[post("/register/temp")]
-async fn register_temp(
+pub async fn register_temp(
     data: web::Json<TempRequest>,
     pool: web::Data<DbPool>,
     req: HttpRequest,
@@ -135,84 +92,6 @@ async fn register_temp(
         has_driver_license: data.temp_info.has_driver_license,
         transport_mode: data.temp_info.transport_mode.clone(),
     };
-
-    // let mut availability_inserts = Vec::new(); //Vecteur pour insérer plusieurs données: table = Vec
-    // let mut condition_inserts = Vec::new();
-    // let mut diploma_inserts = Vec::new();
-    // let mut experience_inserts = Vec::new();
-    // let mut skill_inserts = Vec::new();
-    // let mut documents_inserts = Vec::new();
-
-    // for availability_data in &data.availabilities {
-    //     let new_availability = TempAvailabilityForm {
-    //         temp_id: Some(db_user_id),
-    //         availability_periods: availability_data.availability_periods.clone(),
-    //         time_slots: availability_data.time_slots.clone(),
-    //         geographic_zones: availability_data.geographic_zones.clone(),
-    //         max_travel_time: availability_data.max_travel_time.clone(),
-    //     };
-    //     availability_inserts.push(new_availability);
-    // }
-
-    // // Insertion des horaires de travail
-    // for work_data in &data.conditions {
-    //     let new_condition = TempConditionForm {
-    //         temp_id: Some(db_user_id),
-    //         hourly_rate: work_data.hourly_rate.clone(),
-    //         contract_types: work_data.contract_types.clone(),
-    //         auto_entrepreneur: work_data.auto_entrepreneur,
-    //     };
-    //     condition_inserts.push(new_condition);
-    // }
-
-    // // Insertion des diplômes
-    // for diploma_data in &data.diplomas {
-    //     let new_diploma = TempDiplomaForm {
-    //         temp_id: Some(db_user_id),
-    //         main_diploma: diploma_data.main_diploma.clone(),
-    //         other_certifications: diploma_data.other_certifications.clone(),
-    //         graduation_year: diploma_data.graduation_year,
-    //         school: diploma_data.school.clone(),
-    //     };
-    //     diploma_inserts.push(new_diploma);
-    // }
-
-    // // Insertion des expériences
-    // for experience_data in &data.experiences {
-    //     let new_experience = TempExperienceForm {
-    //         temp_id: Some(db_user_id),
-    //         total_experience: experience_data.total_experience.clone(),
-    //         previous_positions: experience_data.previous_positions.clone(),
-    //         structure_types: experience_data.structure_types.clone(),
-    //         tasks: experience_data.tasks.clone(),
-    //     };
-    //     experience_inserts.push(new_experience);
-    // }
-
-    // //Insertion des skills
-    // for skill_data in &data.skills {
-    //     let new_skill = TempSkillForm {
-    //         temp_id: Some(db_user_id),
-    //         languages: skill_data.languages.clone(),
-    //         pedagogies: skill_data.pedagogies.clone(),
-    //         special_skills: skill_data.special_skills.clone(),
-    //         special_needs_handling: skill_data.special_needs_handling.clone(),
-    //     };
-    //     skill_inserts.push(new_skill);
-    // }
-
-    // //Insertion des documents
-    // for doc_data in &data.documents {
-    //     let new_doc = TempDocumentForm {
-    //         temp_id: Some(db_user_id),
-    //         motivation_letter: doc_data.motivation_letter.clone(),
-    //         professional_references: doc_data.professional_references.clone(),
-    //         diplomas: doc_data.diplomas.clone(),
-    //         criminal_record: doc_data.criminal_record.clone(),
-    //         required_documents: doc_data.required_documents.clone(),
-    //     };
-    //     documents_inserts.push(new_doc);
-    // }
 
     // Transaction dans la base de données (multiples tables)
     match conn.transaction::<_, diesel::result::Error, _>(|conn| {

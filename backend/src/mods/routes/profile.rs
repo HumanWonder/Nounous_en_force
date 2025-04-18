@@ -3,6 +3,7 @@ use crate::mods::models::apierror::ApiError;
 
 //import des structures pour le profil
 use crate::mods::models::{
+    nurseries::OwnerProfile,
     temps::{
         Temp, TempAvailabilitie, TempCondition, TempDiploma, TempDocument, TempExperience,
         TempProfile, TempSkill,
@@ -12,6 +13,7 @@ use crate::mods::models::{
 
 //définition spécifiques de user_id pour ne pas confondre
 use crate::mods::utils::schema::{
+    nurseries::dsl::{nurseries, nursery_id as nursery_owner_id},
     temp_availabilities::dsl::{temp_availabilities, temp_id as dispo_temp_id},
     temp_conditions::dsl::{temp_conditions, temp_id as cond_temp_id},
     temp_diplomas::dsl::{temp_diplomas, temp_id as diplo_temp_id},
@@ -20,7 +22,6 @@ use crate::mods::utils::schema::{
     temp_skills::dsl::{temp_id as skill_temp_id, temp_skills},
     temps::dsl::{temps, user_id as temp_user_id},
     users::dsl::{email, users},
-    // creche_responsables::dsl::{creche_responsables, id as owner_id},
 };
 
 use crate::mods::utils::security;
@@ -151,18 +152,22 @@ pub async fn get_profile(req: HttpRequest, pool: web::Data<DbPool>) -> impl Resp
                     Ok(HttpResponse::Ok().json(profile))
                 }
                 "owner" => {
-                    // let owner_info = creche_responsables
-                    //     .filter(owner_id.eq(user_info.id))
-                    //     .first::<OwnerProfile>(conn)
-                    //     .map_err(|e| {
-                    //         ApiError::new("Erreur profil responsable", Some(e.to_string()))
-                    //     })?;
+                    let owner_info = nurseries
+                        .filter(nursery_owner_id.eq(user_info.id))
+                        .first::<OwnerProfile>(conn)
+                        .map_err(|e| {
+                            ApiError::new("Erreur profil responsable", Some(e.to_string()))
+                        })?;
 
-                    // let profile = FullProfileData::Owner {
-                    //     user: user_info,
-                    //     owner_info,
-                    // };
-                    let profile = FullProfileData::Basic { user: user_info };
+                    let profile = FullProfileData::Owner {
+                        user: user_info,
+                        owner_info: OwnerProfile {
+                            nursery: (),
+                            responsible: (),
+                            description: (),
+                            needs: (),
+                        },
+                    };
 
                     Ok(HttpResponse::Ok().json(profile))
                 }
