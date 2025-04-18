@@ -93,26 +93,43 @@ export interface IntervenantFormData {
 
 // ---------- OWNER PROFILE STRUCTURES ----------
 
-export interface OwnerFullProfile {
-    owner: OwnerData;
-    creches: CrecheDocument[];
-}
 
-export interface OwnerData {
-    full_name: string;
-    phone: string;
+export interface Nursery {
+    name: string;
     address: string;
-    birth_date: string;
-    creche_name: string;
-    creche_address: string;
-    siret: string;
-    has_employees: boolean;
-    needs: string[]; // par ex. ["remplacement ponctuel", "poste à pourvoir", etc.]
-    documents: CrecheDocument[];
+    phone: string;
+    email: string;
+    website: string;
+    type: string;
 }
 
-export interface CrecheDocument {
-    document_type: string;
-    file_url: string;
-    uploaded_at: string;
+export interface NurseryDescription {
+    pedagogy: string;
+    specificities: string;
+    philosophy: string;
+}
+
+export interface NurseryResponsible {
+    first_name: string;
+    last_name: string;
+    phone: string;
+    email: string;
+    role: string;
+}
+
+export interface NurseryNeeds {
+    searched_position: string;
+    replacement_reason: string;
+    estimated_duration: string;
+    availability_periods: string;
+    hours_per_week: string;
+    main_tasks: string;
+    required_skills: string;
+    suggested_salary: string;
+}
+export interface OwnerFullProfile {
+    nursery: Nursery[],
+    description: NurseryDescription[],
+    responsibles: NurseryResponsible[],
+    needs: NurseryNeeds[],
 }

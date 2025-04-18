@@ -3,7 +3,7 @@ use crate::mods::models::apierror::ApiError;
 
 //import des structures pour le profil
 use crate::mods::models::{
-    nurseries::OwnerProfile,
+    nurseries::{Nursery, NurseryDescription, NurseryResponsible, OwnerProfile, ReplacementNeed},
     temps::{
         Temp, TempAvailabilitie, TempCondition, TempDiploma, TempDocument, TempExperience,
         TempProfile, TempSkill,
@@ -11,9 +11,13 @@ use crate::mods::models::{
     user::{FullProfileData, User},
 };
 
+use crate::mods::utils::security;
 //définition spécifiques de user_id pour ne pas confondre
 use crate::mods::utils::schema::{
-    nurseries::dsl::{nurseries, nursery_id as nursery_owner_id},
+    nurseries::dsl::{nurseries, user_id as nursery_owner_id},
+    nursery_description::dsl::{nursery_description, nursery_id as desc_nursery_id},
+    nursery_responsibles::dsl::{nursery_id as resp_nursery_id, nursery_responsibles},
+    replacement_needs::dsl::{nursery_id as need_nursery_id, replacement_needs},
     temp_availabilities::dsl::{temp_availabilities, temp_id as dispo_temp_id},
     temp_conditions::dsl::{temp_conditions, temp_id as cond_temp_id},
     temp_diplomas::dsl::{temp_diplomas, temp_id as diplo_temp_id},
@@ -24,10 +28,9 @@ use crate::mods::utils::schema::{
     users::dsl::{email, users},
 };
 
-use crate::mods::utils::security;
-
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 use diesel::prelude::*;
+use uuid::Uuid;
 
 #[get("/profile")]
 pub async fn get_profile(req: HttpRequest, pool: web::Data<DbPool>) -> impl Responder {
@@ -147,27 +150,67 @@ pub async fn get_profile(req: HttpRequest, pool: web::Data<DbPool>) -> impl Resp
                         serde_json::to_string_pretty(&profile).unwrap()
                     );
 
-                    // println!("full profile data temp -> {:?}", availabilities_list[0]);
-
                     Ok(HttpResponse::Ok().json(profile))
                 }
                 "owner" => {
-                    let owner_info = nurseries
+                    let nurseries_list = nurseries
                         .filter(nursery_owner_id.eq(user_info.id))
-                        .first::<OwnerProfile>(conn)
+                        .load::<Nursery>(conn)
                         .map_err(|e| {
-                            ApiError::new("Erreur profil responsable", Some(e.to_string()))
+                            ApiError::new(
+                                "Erreur lors du chargement des crèches",
+                                Some(e.to_string()),
+                            )
+                        })?;
+
+                    //Ici on récupère la liste des crèches dont l'utilisateur est propriétaire.
+                    //On peut ensuite afficher toutes les infos concernant les crèches sans divulguer les infos aux mauvais utilisateurs
+                    let nursery_ids: Vec<Uuid> = nurseries_list.iter().map(|n| n.id).collect();
+
+                    let nurseries_desc_list = nursery_description
+                        .filter(desc_nursery_id.nullable().eq_any(&nursery_ids))
+                        .load::<NurseryDescription>(conn)
+                        .map_err(|e| {
+                            ApiError::new(
+                                "Erreur lors du chargement des descriptions de crèches",
+                                Some(e.to_string()),
+                            )
+                        })?;
+
+                    let nurseries_resp_list = nursery_responsibles
+                        .filter(resp_nursery_id.nullable().eq_any(&nursery_ids))
+                        .load::<NurseryResponsible>(conn)
+                        .map_err(|e| {
+                            ApiError::new(
+                                "Erreur lors du chargement des responsables de crèches",
+                                Some(e.to_string()),
+                            )
+                        })?;
+
+                    let replacement_list = replacement_needs
+                        .filter(need_nursery_id.nullable().eq_any(&nursery_ids))
+                        .load::<ReplacementNeed>(conn)
+                        .map_err(|e| {
+                            ApiError::new(
+                                "Erreur lors du chargement des descriptions de crèches",
+                                Some(e.to_string()),
+                            )
                         })?;
 
                     let profile = FullProfileData::Owner {
                         user: user_info,
                         owner_info: OwnerProfile {
-                            nursery: (),
-                            responsible: (),
-                            description: (),
-                            needs: (),
+                            nursery: nurseries_list,
+                            responsible: nurseries_resp_list,
+                            description: nurseries_desc_list,
+                            needs: replacement_list,
                         },
                     };
+                    //Vérification profil dans terminal
+                    println!(
+                        "profile JSON:\n{}",
+                        serde_json::to_string_pretty(&profile).unwrap()
+                    );
 
                     Ok(HttpResponse::Ok().json(profile))
                 }
