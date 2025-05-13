@@ -206,6 +206,17 @@ Ce projet est actuellement en phase de développement. Le déploiement n'est pas
 
 ---
 
+## Images
+
+(Design temporaire)
+
+![nnef_Home](https://github.com/user-attachments/assets/7b3d2360-4a41-4a69-9896-f53f78a852ff)
+![nnef_temp_profile](https://github.com/user-attachments/assets/f71cec9e-8c3f-4a1f-80bd-b7d9f8e3422f)
+![nnef_Admin](https://github.com/user-attachments/assets/2c9368ac-858c-4097-8e31-3b70aef8ad67)
+![nnef_nursery_form](https://github.com/user-attachments/assets/567c0517-6487-4cda-ad54-930b6ef2ffdd)
+
+
+
 **Auteur :** Axelle Fouquemberg
 **Dernier jour de stage :** 18/04/2025
 
